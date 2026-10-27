@@ -1,3 +1,3 @@
 # castle-guard
 
-You're a guard in a castle and you need to protect it
+You're a guard in a castle, and you need to protect it
