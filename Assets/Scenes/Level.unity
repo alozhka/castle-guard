@@ -306,7 +306,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8738446627085053733, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
       propertyPath: m_Name
-      value: Tower
+      value: Tower_A
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -316,6 +316,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+--- !u!114 &1012834441 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4890596964370599710, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+  m_PrefabInstance: {fileID: 1012834440}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78297986bfd6d4f90856d3debc9b5986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerView
 --- !u!1 &1817436747
 GameObject:
   m_ObjectHideFlags: 0
@@ -326,6 +337,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1817436748}
   - component: {fileID: 1817436749}
+  - component: {fileID: 1817436750}
   m_Layer: 0
   m_Name: Wall
   m_TagString: Untagged
@@ -374,7 +386,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: dbbca4963cd9b475f87dc8dc1be67201, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -395,14 +407,14 @@ LineRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -2
   m_MaskInteraction: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 1}
+  - {x: 1.5, y: 0, z: 0}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 1
+    widthMultiplier: 0.24
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -451,13 +463,106 @@ LineRenderer:
     numCornerVertices: 0
     numCapVertices: 0
     alignment: 0
-    textureMode: 0
-    textureScale: {x: 1, y: 1}
+    textureMode: 1
+    textureScale: {x: 4.25, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &1817436750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817436747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 938e09fd7ad734e63947ae0de41552ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WallView
+  from: {fileID: 1012834441}
+  to: {fileID: 1837569431}
+--- !u!1001 &1837569430
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2183635051778140094, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_text
+      value: B
+      objectReference: {fileID: 0}
+    - target: {fileID: 4890596964370599710, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: letter
+      value: B
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8126277024292292342, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8738446627085053733, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      propertyPath: m_Name
+      value: Tower_B
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2320692979707958205, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+  m_SourcePrefab: {fileID: 100100000, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+--- !u!114 &1837569431 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4890596964370599710, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
+  m_PrefabInstance: {fileID: 1837569430}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78297986bfd6d4f90856d3debc9b5986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerView
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -465,3 +570,4 @@ SceneRoots:
   - {fileID: 360417894}
   - {fileID: 1012834440}
   - {fileID: 1817436748}
+  - {fileID: 1837569430}
