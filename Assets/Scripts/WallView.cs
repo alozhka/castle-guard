@@ -9,6 +9,13 @@ public class WallView : MonoBehaviour
 
     private LineRenderer _line;
 
+    public void SetEndpoints(TowerView start, TowerView end)
+    {
+        from = start;
+        to = end;
+        LateUpdate();
+    }
+
     private void OnEnable()
     {
         _line = GetComponent<LineRenderer>();

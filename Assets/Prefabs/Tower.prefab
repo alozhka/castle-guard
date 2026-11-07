@@ -507,7 +507,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerView
   letter: A
-  label: {fileID: 0}
+  label: {fileID: 2183635051778140094}
+  innerCircle: {fileID: 10746624767460618}
 --- !u!58 &2456257165130300983
 CircleCollider2D:
   m_ObjectHideFlags: 0
