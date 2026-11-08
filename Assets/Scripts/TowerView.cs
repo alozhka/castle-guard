@@ -8,7 +8,7 @@ public class TowerView : MonoBehaviour, IPointerClickHandler
     [SerializeField] private string letter = "A";
     [SerializeField] private TMP_Text label;
     [SerializeField] private SpriteRenderer innerCircle;
-    private Color defaultColor;
+    private Color _defaultColor;
 
     public event Action<string> Clicked;
 
@@ -22,7 +22,7 @@ public class TowerView : MonoBehaviour, IPointerClickHandler
 
     public void SetCurrent(bool current)
     {
-        innerCircle.color = current ? new Color(1f, 0.58f, 0.2f) : defaultColor;
+        innerCircle.color = current ? new Color(1f, 0.58f, 0.2f) : _defaultColor;
     }
 
     public void SetLetter(string value)
@@ -33,7 +33,7 @@ public class TowerView : MonoBehaviour, IPointerClickHandler
 
     private void Awake()
     {
-        defaultColor = innerCircle.color;
+        _defaultColor = innerCircle.color;
         RefreshLabel();
     }
 

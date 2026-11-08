@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LevelController : MonoBehaviour
 {
@@ -7,20 +9,20 @@ public class LevelController : MonoBehaviour
     [SerializeField] private TowerView towerPrefab;
     [SerializeField] private WallView wallPrefab;
 
-    private readonly Dictionary<string, TowerView> towers = new();
-    private readonly List<WallView> walls = new();
-    private LevelRun run;
+    [SerializeField] private Button undoButton;
 
-    public bool IsComplete => run != null && run.IsComplete;
+    private readonly Dictionary<string, TowerView> _towers = new();
+    private readonly List<WallView> _walls = new();
+    private LevelRun _run;
+
+    public bool IsComplete => _run != null && _run.IsComplete;
 
     private void Start()
     {
-        List<(string From, string To)> connections = new();
-        foreach (LevelDefinition.Wall definition in level.Walls)
-        {
-            connections.Add((definition.from, definition.to));
-        }
-        run = new(level.StartingTower, connections);
+        List<Wall> connections = level.Walls
+            .Select(definition => new Wall(definition.from, definition.to))
+            .ToList();
+        _run = new LevelRun(level.StartingTower, connections);
 
         foreach (LevelDefinition.Tower definition in level.Towers)
         {
@@ -29,23 +31,42 @@ public class LevelController : MonoBehaviour
             tower.transform.localPosition = definition.position;
             tower.SetLetter(definition.id);
             tower.Clicked += HandleTowerClicked;
-            towers.Add(definition.id, tower);
+            _towers.Add(definition.id, tower);
         }
 
         foreach (LevelDefinition.Wall definition in level.Walls)
         {
             WallView wall = Instantiate(wallPrefab, transform);
             wall.name = $"Wall_{definition.from}_{definition.to}";
-            wall.SetEndpoints(towers[definition.from], towers[definition.to]);
-            walls.Add(wall);
+            wall.SetEndpoints(_towers[definition.from], _towers[definition.to]);
+            _walls.Add(wall);
         }
 
         RefreshViews();
     }
 
+    public void Undo()
+    {
+        if (_run != null && _run.TryUndo())
+        {
+            RefreshViews();
+        }
+    }
+
+    public void Restart()
+    {
+        if (_run == null)
+        {
+            return;
+        }
+
+        _run.Restart();
+        RefreshViews();
+    }
+
     private void HandleTowerClicked(string towerId)
     {
-        if (run.TryMove(towerId))
+        if (_run.TryMove(towerId))
         {
             RefreshViews();
         }
@@ -53,14 +74,16 @@ public class LevelController : MonoBehaviour
 
     private void RefreshViews()
     {
-        foreach (KeyValuePair<string, TowerView> tower in towers)
+        undoButton.interactable = _run.CanUndo;
+
+        foreach (KeyValuePair<string, TowerView> tower in _towers)
         {
-            tower.Value.SetCurrent(tower.Key == run.CurrentTower);
+            tower.Value.SetCurrent(tower.Key == _run.CurrentTower);
         }
 
-        for (int i = 0; i < walls.Count; i++)
+        for (int i = 0; i < _walls.Count; i++)
         {
-            walls[i].SetTraversed(run.IsWallTraversed(i));
+            _walls[i].SetTraversed(_run.IsWallTraversed(i));
         }
     }
 }

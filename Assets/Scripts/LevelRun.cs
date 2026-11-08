@@ -2,38 +2,48 @@ using System.Collections.Generic;
 
 public sealed class LevelRun
 {
-    public readonly struct Move
-    {
-        public string From { get; }
-        public string To { get; }
-        public int WallIndex { get; }
-
-        public Move(string from, string to, int wallIndex)
-        {
-            From = from;
-            To = to;
-            WallIndex = wallIndex;
-        }
-    }
-
-    private readonly List<(string From, string To)> walls;
-    private readonly HashSet<int> traversedWalls = new();
-    private readonly List<Move> history = new();
+    private readonly string _startingTower;
+    private readonly List<Wall> _walls;
+    private readonly HashSet<int> _traversedWalls = new();
+    private readonly List<Move> _history = new();
 
     public string CurrentTower { get; private set; }
     public IReadOnlyList<Move> History { get; }
-    public bool IsComplete => traversedWalls.Count == walls.Count;
+    public bool CanUndo => _history.Count > 0;
+    public bool IsComplete => _traversedWalls.Count == _walls.Count;
 
-    public LevelRun(string startingTower, IEnumerable<(string From, string To)> walls)
+    public LevelRun(string startingTower, IEnumerable<Wall> walls)
     {
+        _startingTower = startingTower;
         CurrentTower = startingTower;
-        this.walls = new(walls);
-        History = history.AsReadOnly();
+        _walls = new List<Wall>(walls);
+        History = _history.AsReadOnly();
+    }
+
+    public bool TryUndo()
+    {
+        if (!CanUndo)
+        {
+            return false;
+        }
+
+        Move move = _history[^1];
+        _history.RemoveAt(_history.Count - 1);
+        _traversedWalls.Remove(move.WallIndex);
+        CurrentTower = move.From;
+        return true;
+    }
+
+    public void Restart()
+    {
+        _history.Clear();
+        _traversedWalls.Clear();
+        CurrentTower = _startingTower;
     }
 
     public bool IsWallTraversed(int wallIndex)
     {
-        return traversedWalls.Contains(wallIndex);
+        return _traversedWalls.Contains(wallIndex);
     }
 
     public bool TryMove(string destination)
@@ -43,19 +53,16 @@ public sealed class LevelRun
             return false;
         }
 
-        for (int i = 0; i < walls.Count; i++)
+        for (int i = 0; i < _walls.Count; i++)
         {
-            (string From, string To) wall = walls[i];
-            bool connectsTowers = wall.From == CurrentTower && wall.To == destination
-                || wall.To == CurrentTower && wall.From == destination;
-
-            if (!connectsTowers || traversedWalls.Contains(i))
+            Wall wall = _walls[i];
+            if (!wall.Connects(CurrentTower, destination) || _traversedWalls.Contains(i))
             {
                 continue;
             }
 
-            history.Add(new(CurrentTower, destination, i));
-            traversedWalls.Add(i);
+            _history.Add(new Move(CurrentTower, destination, i));
+            _traversedWalls.Add(i);
             CurrentTower = destination;
             return true;
         }
