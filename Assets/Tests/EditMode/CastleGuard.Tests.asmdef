@@ -1,0 +1,6 @@
+{
+    "name": "CastleGuard.Tests",
+    "references": ["CastleGuard"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}

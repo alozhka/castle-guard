@@ -1,0 +1,7 @@
+{
+    "name": "CastleGuard",
+    "references": [
+        "Unity.TextMeshPro",
+        "Unity.ugui"
+    ]
+}

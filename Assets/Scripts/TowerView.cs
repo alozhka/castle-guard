@@ -1,12 +1,24 @@
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class TowerView : MonoBehaviour
+public class TowerView : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] private string letter = "A";
     [SerializeField] private TMP_Text label;
     [SerializeField] private SpriteRenderer innerCircle;
     private Color defaultColor;
+
+    public event Action<string> Clicked;
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            Clicked?.Invoke(letter);
+        }
+    }
 
     public void SetCurrent(bool current)
     {
