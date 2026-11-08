@@ -1,3 +1,5 @@
+namespace CastleGuard.Level.Model;
+
 public readonly struct Wall
 {
     public string From { get; }

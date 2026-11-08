@@ -1,3 +1,5 @@
+namespace CastleGuard.Level.Model;
+
 public readonly struct Move
 {
     public string From { get; }

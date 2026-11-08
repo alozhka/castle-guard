@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+namespace CastleGuard.Level.Model;
+
 public sealed class LevelRun
 {
     private readonly string _startingTower;

@@ -1,4 +1,7 @@
+using CastleGuard.Level.Model;
 using NUnit.Framework;
+
+namespace CastleGuard.Tests.EditMode;
 
 public class LevelRunTests
 {

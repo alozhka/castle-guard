@@ -226,7 +226,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 001bd98ffb50e499b91f87cacaa7b73a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameNavigation
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.App.GameNavigation
 --- !u!4 &134546242
 Transform:
   m_ObjectHideFlags: 0
@@ -409,7 +409,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 134546241}
-        m_TargetAssemblyTypeName: GameNavigation, Assembly-CSharp
+        m_TargetAssemblyTypeName: CastleGuard.App.GameNavigation, CastleGuard
         m_MethodName: Play
         m_Mode: 0
         m_Arguments:
@@ -1753,6 +1753,46 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2043961448}
   m_CullTransparentMesh: 1
+--- !u!1 &2100000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2100000001}
+  - component: {fileID: 2100000002}
+  m_Layer: 0
+  m_Name: GameEconomy
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &2100000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+--- !u!114 &2100000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bc6acff91344f5ad89862b0cfa91ea, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.App.GameEconomy
+  settings: {fileID: 11400000, guid: 8d2cc35648644db6b20f97faaac6ec98, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1761,3 +1801,4 @@ SceneRoots:
   - {fileID: 1761955011}
   - {fileID: 31070800}
   - {fileID: 134546242}
+  - {fileID: 2100000001}

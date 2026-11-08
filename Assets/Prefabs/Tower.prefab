@@ -505,7 +505,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78297986bfd6d4f90856d3debc9b5986, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TowerView
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.View.TowerView
   letter: A
   label: {fileID: 2183635051778140094}
   innerCircle: {fileID: 10746624767460618}

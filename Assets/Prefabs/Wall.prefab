@@ -153,7 +153,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 938e09fd7ad734e63947ae0de41552ff, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WallView
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.View.WallView
   from: {fileID: 0}
   to: {fileID: 0}
   routeLine: {fileID: 7213388134912317795}

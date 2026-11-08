@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 70ff683a45524abba966e1946e373980, type: 3}
   m_Name: Level02
-  m_EditorClassIdentifier: Assembly-CSharp::LevelDefinition
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.LevelDefinition
   towers:
   - id: A
     position: {x: -1.4, y: -1.4}
@@ -33,3 +33,4 @@ MonoBehaviour:
   - from: A
     to: C
   startingTower: A
+  baseReward: 10
