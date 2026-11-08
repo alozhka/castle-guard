@@ -5,20 +5,60 @@ using UnityEngine.UI;
 
 public class LevelController : MonoBehaviour
 {
-    [SerializeField] private LevelDefinition level;
+    [SerializeField] private LevelDefinition[] levels;
     [SerializeField] private TowerView towerPrefab;
     [SerializeField] private WallView wallPrefab;
 
     [SerializeField] private Button undoButton;
+    [SerializeField] private Button restartButton;
+    [SerializeField] private GameObject victoryPanel;
+    [SerializeField] private Button nextButton;
+    [SerializeField] private Text levelTitle;
 
     private readonly Dictionary<string, TowerView> _towers = new();
     private readonly List<WallView> _walls = new();
     private LevelRun _run;
+    private int _levelIndex;
 
     public bool IsComplete => _run != null && _run.IsComplete;
+    public bool HasNextLevel => _levelIndex + 1 < levels.Length;
 
     private void Start()
     {
+        LoadLevel();
+    }
+
+    public void NextLevel()
+    {
+        if (!IsComplete || !HasNextLevel)
+        {
+            return;
+        }
+
+        _levelIndex++;
+        LoadLevel();
+    }
+
+    private void LoadLevel()
+    {
+        foreach (TowerView tower in _towers.Values)
+        {
+            tower.Clicked -= HandleTowerClicked;
+            tower.gameObject.SetActive(false);
+            Destroy(tower.gameObject);
+        }
+
+        foreach (WallView wall in _walls)
+        {
+            wall.gameObject.SetActive(false);
+            Destroy(wall.gameObject);
+        }
+
+        _towers.Clear();
+        _walls.Clear();
+
+        LevelDefinition level = levels[_levelIndex];
+        levelTitle.text = $"Уровень {_levelIndex + 1}";
         List<Wall> connections = level.Walls
             .Select(definition => new Wall(definition.from, definition.to))
             .ToList();
@@ -47,7 +87,7 @@ public class LevelController : MonoBehaviour
 
     public void Undo()
     {
-        if (_run != null && _run.TryUndo())
+        if (_run != null && !IsComplete && _run.TryUndo())
         {
             RefreshViews();
         }
@@ -55,7 +95,7 @@ public class LevelController : MonoBehaviour
 
     public void Restart()
     {
-        if (_run == null)
+        if (_run == null || IsComplete)
         {
             return;
         }
@@ -74,7 +114,10 @@ public class LevelController : MonoBehaviour
 
     private void RefreshViews()
     {
-        undoButton.interactable = _run.CanUndo;
+        victoryPanel.SetActive(IsComplete);
+        nextButton.gameObject.SetActive(HasNextLevel);
+        undoButton.interactable = !IsComplete && _run.CanUndo;
+        restartButton.interactable = !IsComplete;
 
         foreach (KeyValuePair<string, TowerView> tower in _towers)
         {
