@@ -169,7 +169,7 @@ namespace CastleGuard.Level
         public void BuyHint()
         {
             SampleClock();
-            _hintService?.TryPurchase();
+            _hintService?.Purchase();
             RefreshHintButton();
         }
 

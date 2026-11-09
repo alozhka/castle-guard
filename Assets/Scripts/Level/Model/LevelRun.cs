@@ -11,6 +11,7 @@ public sealed class LevelRun
 
     public string CurrentTower { get; private set; }
     public IReadOnlyList<Move> History { get; }
+    public IReadOnlyList<Wall> Walls { get; }
     public bool CanUndo => _history.Count > 0;
     public bool IsComplete => _traversedWalls.Count == _walls.Count;
 
@@ -19,6 +20,7 @@ public sealed class LevelRun
         _startingTower = startingTower;
         CurrentTower = startingTower;
         _walls = new List<Wall>(walls);
+        Walls = _walls.AsReadOnly();
         History = _history.AsReadOnly();
     }
 

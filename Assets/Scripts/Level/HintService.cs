@@ -1,6 +1,7 @@
 using CastleGuard.Economy;
 using CastleGuard.Level.Model;
 using System;
+using System.Collections.Generic;
 
 namespace CastleGuard.Level;
 
@@ -25,22 +26,27 @@ public sealed class HintService
         Price = price;
     }
 
-    public bool TryPurchase()
+    public HintResult Purchase()
     {
         if (!CanPurchase)
         {
-            return false;
+            return default;
         }
 
         _isPurchasing = true;
         try
         {
+            HintResult result = RouteSolver.TrySolve(_attempt, out IReadOnlyList<Move> route)
+                ? HintResult.Forward(route[0])
+                : HintResult.Undo(_attempt.History[^1]);
+
             if (!_wallet.TrySpend(Price))
             {
-                return false;
+                return default;
             }
 
-            return _attempt.TryRecordHintUse();
+            _attempt.TryRecordHintUse();
+            return result;
         }
         finally
         {

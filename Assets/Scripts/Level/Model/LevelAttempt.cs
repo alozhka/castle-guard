@@ -10,6 +10,7 @@ public sealed class LevelAttempt
 
     public string CurrentTower => _run.CurrentTower;
     public IReadOnlyList<Move> History => _run.History;
+    public IReadOnlyList<Wall> Walls => _run.Walls;
     public bool CanUndo => !IsComplete && _run.CanUndo;
     public bool IsComplete => Reward.HasValue;
     public bool CanUseHint => !IsComplete && !_hintLocked;
