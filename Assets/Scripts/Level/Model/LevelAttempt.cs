@@ -6,11 +6,13 @@ public sealed class LevelAttempt
 {
     private readonly LevelRun _run;
     private readonly int _baseReward;
+    private bool _hintLocked;
 
     public string CurrentTower => _run.CurrentTower;
     public IReadOnlyList<Move> History => _run.History;
     public bool CanUndo => !IsComplete && _run.CanUndo;
     public bool IsComplete => Reward.HasValue;
+    public bool CanUseHint => !IsComplete && !_hintLocked;
 
     public double ElapsedSeconds { get; private set; }
     public bool UsedUndo { get; private set; }
@@ -46,6 +48,7 @@ public sealed class LevelAttempt
             return false;
         }
 
+        _hintLocked = false;
         CompleteIfFinished();
         return true;
     }
@@ -63,11 +66,12 @@ public sealed class LevelAttempt
 
     public bool TryRecordHintUse()
     {
-        if (IsComplete)
+        if (!CanUseHint)
         {
             return false;
         }
 
+        _hintLocked = true;
         UsedHint = true;
         return true;
     }

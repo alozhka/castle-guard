@@ -1,4 +1,5 @@
 using CastleGuard.App;
+using CastleGuard.Economy;
 using CastleGuard.Level.Model;
 using CastleGuard.Level.View;
 using System.Collections.Generic;
@@ -18,6 +19,9 @@ namespace CastleGuard.Level
 
         [SerializeField] private Button undoButton;
         [SerializeField] private Button restartButton;
+        [SerializeField] private Button hintButton;
+        [SerializeField] private Text hintLabel;
+        [SerializeField] private EconomySettings economySettings;
         [SerializeField] private GameObject victoryPanel;
         [SerializeField] private Button nextButton;
         [SerializeField] private Text levelTitle;
@@ -26,6 +30,8 @@ namespace CastleGuard.Level
         private readonly Dictionary<string, TowerView> _towers = new();
         private readonly List<WallView> _walls = new();
         private LevelAttempt _attempt;
+        private HintService _hintService;
+        private CoinWallet _wallet;
         private int _levelIndex;
         private bool _hasFocus;
         private bool _isPaused;
@@ -42,6 +48,14 @@ namespace CastleGuard.Level
         {
             _hasFocus = Application.isFocused;
             ResetClock();
+            _wallet = GameEconomy.Wallet;
+            _wallet.BalanceChanged += HandleBalanceChanged;
+            RefreshHintButton();
+        }
+
+        private void OnDisable()
+        {
+            _wallet.BalanceChanged -= HandleBalanceChanged;
         }
 
         private void Start()
@@ -145,8 +159,28 @@ namespace CastleGuard.Level
             IEnumerable<Wall> connections = level.Walls
                 .Select(definition => new Wall(definition.from, definition.to));
             _attempt = new LevelAttempt(level.StartingTower, connections, level.BaseReward);
+            economySettings.Validate();
+            _hintService = new HintService(_wallet, _attempt, economySettings.HintPrice);
+            hintLabel.text = $"Подсказка  {_hintService.Price}";
             RefreshViews();
             ResetClock();
+        }
+
+        public void BuyHint()
+        {
+            SampleClock();
+            _hintService?.TryPurchase();
+            RefreshHintButton();
+        }
+
+        private void HandleBalanceChanged(int balance)
+        {
+            RefreshHintButton();
+        }
+
+        private void RefreshHintButton()
+        {
+            hintButton.interactable = _hintService != null && _hintService.CanPurchase;
         }
 
         private void ResetClock()
@@ -192,6 +226,7 @@ namespace CastleGuard.Level
             nextButton.gameObject.SetActive(HasNextLevel);
             undoButton.interactable = _attempt.CanUndo;
             restartButton.interactable = !IsComplete;
+            RefreshHintButton();
 
             foreach (KeyValuePair<string, TowerView> tower in _towers)
             {
