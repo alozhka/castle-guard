@@ -1,8 +1,10 @@
+using CastleGuard.App;
 using CastleGuard.Level.Model;
 using CastleGuard.Level.View;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace CastleGuard.Level
@@ -12,24 +14,58 @@ namespace CastleGuard.Level
         [SerializeField] private LevelDefinition[] levels;
         [SerializeField] private TowerView towerPrefab;
         [SerializeField] private WallView wallPrefab;
+        [SerializeField] private Physics2DRaycaster boardRaycaster;
 
         [SerializeField] private Button undoButton;
         [SerializeField] private Button restartButton;
         [SerializeField] private GameObject victoryPanel;
         [SerializeField] private Button nextButton;
         [SerializeField] private Text levelTitle;
+        [SerializeField] private Text victoryReward;
 
         private readonly Dictionary<string, TowerView> _towers = new();
         private readonly List<WallView> _walls = new();
-        private LevelRun _run;
+        private LevelAttempt _attempt;
         private int _levelIndex;
+        private bool _hasFocus;
+        private bool _isPaused;
+        private bool _clockWasRunning;
+        private double _lastTimeSample;
 
-        public bool IsComplete => _run != null && _run.IsComplete;
+        public bool IsComplete => _attempt != null && _attempt.IsComplete;
         public bool HasNextLevel => _levelIndex + 1 < levels.Length;
+
+        private bool IsClockRunning => _attempt is { IsComplete: false }
+            && _hasFocus && !_isPaused && Time.timeScale > 0;
+
+        private void OnEnable()
+        {
+            _hasFocus = Application.isFocused;
+            ResetClock();
+        }
 
         private void Start()
         {
             LoadLevel();
+        }
+
+        private void Update()
+        {
+            SampleClock();
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            SampleClock();
+            _hasFocus = hasFocus;
+            ResetClock();
+        }
+
+        private void OnApplicationPause(bool isPaused)
+        {
+            SampleClock();
+            _isPaused = isPaused;
+            ResetClock();
         }
 
         public void NextLevel()
@@ -64,11 +100,6 @@ namespace CastleGuard.Level
             LevelDefinition level = levels[_levelIndex];
             level.ValidateEconomy();
             levelTitle.text = $"Уровень {_levelIndex + 1}";
-            List<Wall> connections = level.Walls
-                .Select(definition => new Wall(definition.from, definition.to))
-                .ToList();
-            _run = new LevelRun(level.StartingTower, connections);
-
             foreach (LevelDefinition.Tower definition in level.Towers)
             {
                 TowerView tower = Instantiate(towerPrefab, transform);
@@ -87,12 +118,12 @@ namespace CastleGuard.Level
                 _walls.Add(wall);
             }
 
-            RefreshViews();
+            StartAttempt();
         }
 
         public void Undo()
         {
-            if (_run != null && !IsComplete && _run.TryUndo())
+            if (_attempt != null && _attempt.TryUndo())
             {
                 RefreshViews();
             }
@@ -100,38 +131,76 @@ namespace CastleGuard.Level
 
         public void Restart()
         {
-            if (_run == null || IsComplete)
+            if (_attempt == null || IsComplete)
             {
                 return;
             }
 
-            _run.Restart();
+            StartAttempt();
+        }
+
+        private void StartAttempt()
+        {
+            LevelDefinition level = levels[_levelIndex];
+            IEnumerable<Wall> connections = level.Walls
+                .Select(definition => new Wall(definition.from, definition.to));
+            _attempt = new LevelAttempt(level.StartingTower, connections, level.BaseReward);
             RefreshViews();
+            ResetClock();
+        }
+
+        private void ResetClock()
+        {
+            _lastTimeSample = Time.realtimeSinceStartupAsDouble;
+            _clockWasRunning = IsClockRunning;
+        }
+
+        private void SampleClock()
+        {
+            double now = Time.realtimeSinceStartupAsDouble;
+            bool clockIsRunning = IsClockRunning;
+            if (_clockWasRunning && clockIsRunning)
+            {
+                _attempt.TryAddElapsedTime(now - _lastTimeSample);
+            }
+
+            _lastTimeSample = now;
+            _clockWasRunning = clockIsRunning;
         }
 
         private void HandleTowerClicked(string towerId)
         {
-            if (_run.TryMove(towerId))
+            SampleClock();
+            if (!_attempt.TryMove(towerId))
             {
-                RefreshViews();
+                return;
             }
+
+            if (_attempt.Reward.HasValue)
+            {
+                GameEconomy.Wallet.Credit(_attempt.Reward.Value.Total);
+                victoryReward.text = $"+{_attempt.Reward.Value.Total}";
+            }
+
+            RefreshViews();
         }
 
         private void RefreshViews()
         {
+            boardRaycaster.enabled = !IsComplete;
             victoryPanel.SetActive(IsComplete);
             nextButton.gameObject.SetActive(HasNextLevel);
-            undoButton.interactable = !IsComplete && _run.CanUndo;
+            undoButton.interactable = _attempt.CanUndo;
             restartButton.interactable = !IsComplete;
 
             foreach (KeyValuePair<string, TowerView> tower in _towers)
             {
-                tower.Value.SetCurrent(tower.Key == _run.CurrentTower);
+                tower.Value.SetCurrent(tower.Key == _attempt.CurrentTower);
             }
 
             for (int i = 0; i < _walls.Count; i++)
             {
-                _walls[i].SetTraversed(_run.IsWallTraversed(i));
+                _walls[i].SetTraversed(_attempt.IsWallTraversed(i));
             }
         }
     }
