@@ -169,7 +169,12 @@ namespace CastleGuard.Level
         public void BuyHint()
         {
             SampleClock();
-            _hintService?.Purchase();
+            if (_hintService?.Purchase().Step is Move step)
+            {
+                RefreshViews(step.To);
+                return;
+            }
+
             RefreshHintButton();
         }
 
@@ -219,7 +224,7 @@ namespace CastleGuard.Level
             RefreshViews();
         }
 
-        private void RefreshViews()
+        private void RefreshViews(string hintedTower = null)
         {
             boardRaycaster.enabled = !IsComplete;
             victoryPanel.SetActive(IsComplete);
@@ -230,7 +235,7 @@ namespace CastleGuard.Level
 
             foreach (KeyValuePair<string, TowerView> tower in _towers)
             {
-                tower.Value.SetCurrent(tower.Key == _attempt.CurrentTower);
+                tower.Value.SetState(tower.Key == _attempt.CurrentTower, tower.Key == hintedTower);
             }
 
             for (int i = 0; i < _walls.Count; i++)

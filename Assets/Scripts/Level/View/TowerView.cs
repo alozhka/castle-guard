@@ -10,6 +10,7 @@ namespace CastleGuard.Level.View
         [SerializeField] private string letter = "A";
         [SerializeField] private TMP_Text label;
         [SerializeField] private SpriteRenderer innerCircle;
+        [SerializeField] private Color hintColor = new(0.32f, 0.9f, 1f);
         private Color _defaultColor;
 
         public event Action<string> Clicked;
@@ -22,9 +23,10 @@ namespace CastleGuard.Level.View
             }
         }
 
-        public void SetCurrent(bool current)
+        public void SetState(bool current, bool hinted)
         {
-            innerCircle.color = current ? new Color(1f, 0.58f, 0.2f) : _defaultColor;
+            Color color = current ? new Color(1f, 0.58f, 0.2f) : _defaultColor;
+            innerCircle.color = hinted ? hintColor : color;
         }
 
         public void SetLetter(string value)

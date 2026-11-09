@@ -509,6 +509,7 @@ MonoBehaviour:
   letter: A
   label: {fileID: 2183635051778140094}
   innerCircle: {fileID: 10746624767460618}
+  hintColor: {r: 0.32, g: 0.9, b: 1, a: 1}
 --- !u!58 &2456257165130300983
 CircleCollider2D:
   m_ObjectHideFlags: 0
