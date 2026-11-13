@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using CastleGuard.Level.Generation;
 using UnityEngine;
 
 namespace CastleGuard.Level
@@ -30,6 +32,17 @@ namespace CastleGuard.Level
         public IReadOnlyList<Wall> Walls => walls;
         public string StartingTower => startingTower;
         public int BaseReward => baseReward;
+
+        public static LevelDefinition Create(GeneratedLevel data, int reward)
+        {
+            LevelDefinition level = CreateInstance<LevelDefinition>();
+            level.name = data.Name;
+            level.baseReward = reward;
+            level.towers = data.Towers.ToArray();
+            level.walls = data.Walls.ToArray();
+            level.startingTower = data.StartingTower;
+            return level;
+        }
 
         public void ValidateEconomy()
         {

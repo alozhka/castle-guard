@@ -1,6 +1,8 @@
 using CastleGuard.App;
 using CastleGuard.Economy;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Generation;
+using System.Globalization;
 using CastleGuard.Level.View;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,7 @@ namespace CastleGuard.Level
     public class LevelController : MonoBehaviour
     {
         [SerializeField] private LevelDefinition[] levels;
+        [SerializeField] private LevelDefinition generatedLevel;
         [SerializeField] private TowerView towerPrefab;
         [SerializeField] private WallView wallPrefab;
         [SerializeField] private Physics2DRaycaster boardRaycaster;
@@ -30,6 +33,8 @@ namespace CastleGuard.Level
         private readonly Dictionary<string, TowerView> _towers = new();
         private readonly List<WallView> _walls = new();
         private LevelAttempt _attempt;
+        private LevelDefinition _currentLevel;
+        private LevelDefinition _runtimeLevel;
         private HintService _hintService;
         private CoinWallet _wallet;
         private int _levelIndex;
@@ -38,8 +43,10 @@ namespace CastleGuard.Level
         private bool _clockWasRunning;
         private double _lastTimeSample;
 
-        public bool IsComplete => _attempt != null && _attempt.IsComplete;
-        public bool HasNextLevel => _levelIndex + 1 < levels.Length;
+        private bool IsComplete => _attempt is { IsComplete: true };
+
+        private bool HasNextLevel => _levelIndex + 1 < levels.Length
+                                     || generatedLevel != null;
 
         private bool IsClockRunning => _attempt is { IsComplete: false }
             && _hasFocus && !_isPaused && Time.timeScale > 0;
@@ -111,7 +118,10 @@ namespace CastleGuard.Level
             _towers.Clear();
             _walls.Clear();
 
-            LevelDefinition level = levels[_levelIndex];
+            _currentLevel = _levelIndex < levels.Length
+                ? levels[_levelIndex]
+                : CreateGeneratedLevel();
+            LevelDefinition level = _currentLevel;
             level.ValidateEconomy();
             levelTitle.text = $"Уровень {_levelIndex + 1}";
             foreach (LevelDefinition.Tower definition in level.Towers)
@@ -135,6 +145,27 @@ namespace CastleGuard.Level
             StartAttempt();
         }
 
+        private LevelDefinition CreateGeneratedLevel()
+        {
+            if (_runtimeLevel != null)
+            {
+                Destroy(_runtimeLevel);
+            }
+
+            string levelName = "Уровень " + (_levelIndex + 1).ToString(CultureInfo.InvariantCulture);
+            GeneratedLevel data = new LevelGenerator().Generate(levelName);
+            _runtimeLevel = LevelDefinition.Create(data, generatedLevel.BaseReward);
+            return _runtimeLevel;
+        }
+
+        private void OnDestroy()
+        {
+            if (_runtimeLevel != null)
+            {
+                Destroy(_runtimeLevel);
+            }
+        }
+
         public void Undo()
         {
             if (_attempt != null && _attempt.TryUndo())
@@ -155,7 +186,7 @@ namespace CastleGuard.Level
 
         private void StartAttempt()
         {
-            LevelDefinition level = levels[_levelIndex];
+            LevelDefinition level = _currentLevel;
             IEnumerable<Wall> connections = level.Walls
                 .Select(definition => new Wall(definition.from, definition.to));
             _attempt = new LevelAttempt(level.StartingTower, connections, level.BaseReward);

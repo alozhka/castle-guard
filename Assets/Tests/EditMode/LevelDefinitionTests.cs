@@ -14,7 +14,7 @@ public class LevelDefinitionTests
     [TestCase("Level01", "ABCDA")]
     [TestCase("Level02", "ABCDAC")]
     [TestCase("Level03", "DABCDEC")]
-    [TestCase("Level04GeneratedPlaceholder", "ABCA")]
+    [TestCase("GeneratedLevel", "ABCA")]
     public void Level_CheckRoute_TraversesEveryWallExactlyOnce(string assetName, string route)
     {
         LevelDefinition level = AssetDatabase.LoadAssetAtPath<LevelDefinition>($"Assets/Levels/{assetName}.asset");
