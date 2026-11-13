@@ -3,6 +3,8 @@
     "rootNamespace": "CastleGuard",
     "references": [
         "CastleGuard",
+        "Unity.TextMeshPro",
+        "Unity.ugui",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

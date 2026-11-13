@@ -1,5 +1,4 @@
 using CastleGuard.Economy;
-using CastleGuard.Economy.Persistence;
 using UnityEngine;
 
 namespace CastleGuard.App
@@ -9,16 +8,14 @@ namespace CastleGuard.App
         [SerializeField] private EconomySettings settings;
 
         private static GameEconomy _instance;
-        private static CoinWallet _wallet;
 
-        public static CoinWallet Wallet => _wallet ??= new CoinWallet(new PlayerPrefsCoinWalletStore());
+        public static CoinWallet Wallet => GameSave.Wallet;
         public EconomySettings Settings => settings;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStatics()
         {
             _instance = null;
-            _wallet = null;
         }
 
         private void Awake()
@@ -31,7 +28,6 @@ namespace CastleGuard.App
 
             settings.Validate();
             _instance = this;
-            _wallet ??= new CoinWallet(new PlayerPrefsCoinWalletStore());
             DontDestroyOnLoad(gameObject);
         }
 

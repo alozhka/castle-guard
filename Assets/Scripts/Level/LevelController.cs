@@ -67,6 +67,12 @@ namespace CastleGuard.Level
 
         private void Start()
         {
+            _levelIndex = GameSave.Progress.LevelNumber - 1;
+            if (generatedLevel == null)
+            {
+                _levelIndex = Mathf.Min(_levelIndex, levels.Length - 1);
+            }
+
             LoadLevel();
         }
 
@@ -249,6 +255,11 @@ namespace CastleGuard.Level
             if (_attempt.Reward.HasValue)
             {
                 GameEconomy.Wallet.Credit(_attempt.Reward.Value.Total);
+                if (HasNextLevel)
+                {
+                    GameSave.Progress.CompleteLevel(_levelIndex + 1);
+                }
+
                 victoryReward.text = $"+{_attempt.Reward.Value.Total}";
             }
 
