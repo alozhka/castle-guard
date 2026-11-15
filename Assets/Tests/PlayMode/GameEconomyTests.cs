@@ -16,20 +16,20 @@ public class GameEconomyTests
         yield return SceneManager.LoadSceneAsync("Level");
         yield return null;
 
-        CoinWallet wallet = GameEconomy.Wallet;
+        CoinWallet wallet = GameSave.Wallet;
         int balance = wallet.Balance;
         AssertSingleService();
 
         yield return SceneManager.LoadSceneAsync("MainMenu");
         yield return null;
         AssertSingleService();
-        Assert.That(GameEconomy.Wallet, Is.SameAs(wallet));
+        Assert.That(GameSave.Wallet, Is.SameAs(wallet));
 
         yield return SceneManager.LoadSceneAsync("Level");
         yield return null;
         AssertSingleService();
-        Assert.That(GameEconomy.Wallet, Is.SameAs(wallet));
-        Assert.That(GameEconomy.Wallet.Balance, Is.EqualTo(balance));
+        Assert.That(GameSave.Wallet, Is.SameAs(wallet));
+        Assert.That(GameSave.Wallet.Balance, Is.EqualTo(balance));
     }
 
     private static void AssertSingleService()

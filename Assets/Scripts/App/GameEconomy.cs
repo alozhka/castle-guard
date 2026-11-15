@@ -9,7 +9,6 @@ namespace CastleGuard.App
 
         private static GameEconomy _instance;
 
-        public static CoinWallet Wallet => GameSave.Wallet;
         public EconomySettings Settings => settings;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -26,7 +25,6 @@ namespace CastleGuard.App
                 return;
             }
 
-            settings.Validate();
             _instance = this;
             DontDestroyOnLoad(gameObject);
         }

@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23b8de3afbcc4345a44a57f7626f7727, type: 3}
   m_Name: Economy
   m_EditorClassIdentifier: CastleGuard::CastleGuard.Economy.EconomySettings
-  hintPrice: 5
+  hintPrice: 10

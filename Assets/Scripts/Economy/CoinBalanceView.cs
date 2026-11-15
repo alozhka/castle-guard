@@ -12,7 +12,7 @@ namespace CastleGuard.Economy
 
         private void OnEnable()
         {
-            _wallet = GameEconomy.Wallet;
+            _wallet = GameSave.Wallet;
             _wallet.BalanceChanged += ShowBalance;
             ShowBalance(_wallet.Balance);
         }

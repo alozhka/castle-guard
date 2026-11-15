@@ -36,7 +36,6 @@ namespace CastleGuard.Level
         private LevelDefinition _currentLevel;
         private LevelDefinition _runtimeLevel;
         private HintService _hintService;
-        private CoinWallet _wallet;
         private int _levelIndex;
         private bool _hasFocus;
         private bool _isPaused;
@@ -45,9 +44,6 @@ namespace CastleGuard.Level
 
         private bool IsComplete => _attempt is { IsComplete: true };
 
-        private bool HasNextLevel => _levelIndex + 1 < levels.Length
-                                     || generatedLevel != null;
-
         private bool IsClockRunning => _attempt is { IsComplete: false }
             && _hasFocus && !_isPaused && Time.timeScale > 0;
 
@@ -55,14 +51,13 @@ namespace CastleGuard.Level
         {
             _hasFocus = Application.isFocused;
             ResetClock();
-            _wallet = GameEconomy.Wallet;
-            _wallet.BalanceChanged += HandleBalanceChanged;
+            GameSave.Wallet.BalanceChanged += HandleBalanceChanged;
             RefreshHintButton();
         }
 
         private void OnDisable()
         {
-            _wallet.BalanceChanged -= HandleBalanceChanged;
+            GameSave.Wallet.BalanceChanged -= HandleBalanceChanged;
         }
 
         private void Start()
@@ -97,7 +92,7 @@ namespace CastleGuard.Level
 
         public void NextLevel()
         {
-            if (!IsComplete || !HasNextLevel)
+            if (!IsComplete)
             {
                 return;
             }
@@ -196,8 +191,7 @@ namespace CastleGuard.Level
             IEnumerable<Wall> connections = level.Walls
                 .Select(definition => new Wall(definition.from, definition.to));
             _attempt = new LevelAttempt(level.StartingTower, connections, level.BaseReward);
-            economySettings.Validate();
-            _hintService = new HintService(_wallet, _attempt, economySettings.HintPrice);
+            _hintService = new HintService(GameSave.Wallet, _attempt, economySettings.HintPrice);
             hintLabel.text = $"Подсказка  {_hintService.Price}";
             RefreshViews();
             ResetClock();
@@ -254,11 +248,8 @@ namespace CastleGuard.Level
 
             if (_attempt.Reward.HasValue)
             {
-                GameEconomy.Wallet.Credit(_attempt.Reward.Value.Total);
-                if (HasNextLevel)
-                {
-                    GameSave.Progress.CompleteLevel(_levelIndex + 1);
-                }
+                GameSave.Wallet.Credit(_attempt.Reward.Value.Total);
+                GameSave.Progress.CompleteLevel(_levelIndex + 1);
 
                 victoryReward.text = $"+{_attempt.Reward.Value.Total}";
             }
@@ -270,7 +261,7 @@ namespace CastleGuard.Level
         {
             boardRaycaster.enabled = !IsComplete;
             victoryPanel.SetActive(IsComplete);
-            nextButton.gameObject.SetActive(HasNextLevel);
+            nextButton.gameObject.SetActive(value: true);
             undoButton.interactable = _attempt.CanUndo;
             restartButton.interactable = !IsComplete;
             RefreshHintButton();
