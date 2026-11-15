@@ -82,7 +82,7 @@ public class LevelDefinitionTests
 
         Assert.That(settings, Is.Not.Null);
         Assert.DoesNotThrow(settings.Validate);
-        Assert.That(settings.HintPrice, Is.EqualTo(5));
+        Assert.That(settings.HintPrice, Is.EqualTo(10));
     }
 
     [TestCase(-1)]

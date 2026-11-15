@@ -34,7 +34,21 @@ public class ProgressTests
             yield return SceneManager.LoadSceneAsync("Level");
             yield return null;
 
-            LevelController controller = UnityEngine.Object.FindFirstObjectByType<LevelController>();
+            LevelView controller = UnityEngine.Object.FindFirstObjectByType<LevelView>();
+            Button hintButton = GetButton(controller, "hintButton");
+            Assert.That(hintButton.interactable, Is.False);
+            controller.enabled = false;
+            GameSave.Wallet.Credit(10);
+            Assert.That(hintButton.interactable, Is.False);
+            controller.enabled = true;
+            Assert.That(hintButton.interactable, Is.True);
+            hintButton.onClick.Invoke();
+            Assert.That(GameSave.Wallet.Balance, Is.Zero);
+            Assert.That(hintButton.interactable, Is.False);
+            GetButton(controller, "restartButton").onClick.Invoke();
+            controller.SendMessage("HandleTowerClicked", "B");
+            GetButton(controller, "undoButton").onClick.Invoke();
+            Assert.That(GetButton(controller, "undoButton").interactable, Is.False);
             controller.SendMessage("HandleTowerClicked", "B");
             Assert.That(new PlayerProgress(progressKey).LevelNumber, Is.EqualTo(1));
             controller.SendMessage("HandleTowerClicked", "C");
@@ -52,8 +66,8 @@ public class ProgressTests
             yield return SceneManager.LoadSceneAsync("Level");
             yield return null;
 
-            controller = UnityEngine.Object.FindFirstObjectByType<LevelController>();
-            FieldInfo titleField = typeof(LevelController).GetField("levelTitle", BindingFlags.Instance | BindingFlags.NonPublic);
+            controller = UnityEngine.Object.FindFirstObjectByType<LevelView>();
+            FieldInfo titleField = typeof(LevelView).GetField("levelTitle", BindingFlags.Instance | BindingFlags.NonPublic);
             Text title = (Text)titleField.GetValue(controller);
             Assert.That(title.text, Is.EqualTo("Уровень 2"));
         }
@@ -65,5 +79,11 @@ public class ProgressTests
             PlayerPrefs.DeleteKey(walletKey);
             PlayerPrefs.Save();
         }
+    }
+
+    private static Button GetButton(LevelView view, string fieldName)
+    {
+        FieldInfo field = typeof(LevelView).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        return (Button)field.GetValue(view);
     }
 }

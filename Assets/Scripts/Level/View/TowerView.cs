@@ -13,13 +13,13 @@ namespace CastleGuard.Level.View
         [SerializeField] private Color hintColor = new(0.32f, 0.9f, 1f);
         private Color _defaultColor;
 
-        public event Action<string> Clicked;
+        public event Action<string> Onclick;
 
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                Clicked?.Invoke(letter);
+                Onclick?.Invoke(letter);
             }
         }
 

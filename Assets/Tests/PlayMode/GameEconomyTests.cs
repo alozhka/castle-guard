@@ -37,6 +37,6 @@ public class GameEconomyTests
         GameEconomy[] services = Object.FindObjectsByType<GameEconomy>();
         Assert.That(services, Has.Length.EqualTo(1));
         Assert.That(services[0].Settings, Is.Not.Null);
-        Assert.That(services[0].Settings.HintPrice, Is.EqualTo(5));
+        Assert.That(services[0].Settings.HintPrice, Is.EqualTo(10));
     }
 }

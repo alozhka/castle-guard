@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace CastleGuard.Economy
@@ -8,5 +9,13 @@ namespace CastleGuard.Economy
         [SerializeField, Min(1)] private int hintPrice = 5;
 
         public int HintPrice => hintPrice;
+
+        public void Validate()
+        {
+            if (hintPrice <= 0)
+            {
+                throw new InvalidOperationException("Hint price must be positive.");
+            }
+        }
     }
 }

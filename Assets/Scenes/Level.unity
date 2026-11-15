@@ -1579,7 +1579,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1817436750}
-        m_TargetAssemblyTypeName: CastleGuard.Level.LevelController, CastleGuard
+        m_TargetAssemblyTypeName: CastleGuard.Level.LevelView, CastleGuard
         m_MethodName: NextLevel
         m_Mode: 0
         m_Arguments:
@@ -2083,7 +2083,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d50b4105bf0b4f9287312cc4d6e4dfa6, type: 3}
   m_Name:
-  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.LevelController
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.LevelView
   levels:
   - {fileID: 11400000, guid: 31e1f8ef9adf4a19a14bb4edbb2ea06e, type: 2}
   - {fileID: 11400000, guid: 538a444d84ca4b5ab67099f79f7705bb, type: 2}
@@ -2199,7 +2199,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1817436750}
-        m_TargetAssemblyTypeName: CastleGuard.Level.LevelController, CastleGuard
+        m_TargetAssemblyTypeName: CastleGuard.Level.LevelView, CastleGuard
         m_MethodName: Undo
         m_Mode: 0
         m_Arguments:
@@ -2411,7 +2411,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1817436750}
-        m_TargetAssemblyTypeName: CastleGuard.Level.LevelController, CastleGuard
+        m_TargetAssemblyTypeName: CastleGuard.Level.LevelView, CastleGuard
         m_MethodName: Restart
         m_Mode: 0
         m_Arguments:
@@ -2623,7 +2623,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1817436750}
-        m_TargetAssemblyTypeName: CastleGuard.Level.LevelController, CastleGuard
+        m_TargetAssemblyTypeName: CastleGuard.Level.LevelView, CastleGuard
         m_MethodName: BuyHint
         m_Mode: 0
         m_Arguments:
