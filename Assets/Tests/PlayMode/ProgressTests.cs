@@ -9,6 +9,7 @@ using CastleGuard.Level.View;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -46,14 +47,14 @@ public class ProgressTests
             Assert.That(GameSave.Wallet.Balance, Is.Zero);
             Assert.That(hintButton.interactable, Is.False);
             GetButton(controller, "restartButton").onClick.Invoke();
-            controller.SendMessage("HandleTowerClicked", "B");
+            ClickTower(controller, "B");
             GetButton(controller, "undoButton").onClick.Invoke();
             Assert.That(GetButton(controller, "undoButton").interactable, Is.False);
-            controller.SendMessage("HandleTowerClicked", "B");
+            ClickTower(controller, "B");
             Assert.That(new PlayerProgress(progressKey).LevelNumber, Is.EqualTo(1));
-            controller.SendMessage("HandleTowerClicked", "C");
-            controller.SendMessage("HandleTowerClicked", "D");
-            controller.SendMessage("HandleTowerClicked", "A");
+            ClickTower(controller, "C");
+            ClickTower(controller, "D");
+            ClickTower(controller, "A");
             Assert.That(new PlayerProgress(progressKey).LevelNumber, Is.EqualTo(2));
 
             progressField.SetValue(null, new PlayerProgress(progressKey));
@@ -79,6 +80,16 @@ public class ProgressTests
             PlayerPrefs.DeleteKey(walletKey);
             PlayerPrefs.Save();
         }
+    }
+
+    private static void ClickTower(LevelView view, string towerId)
+    {
+        TowerView tower = view.transform.Find($"Tower_{towerId}").GetComponent<TowerView>();
+        PointerEventData click = new(EventSystem.current)
+        {
+            button = PointerEventData.InputButton.Left,
+        };
+        tower.OnPointerClick(click);
     }
 
     private static Button GetButton(LevelView view, string fieldName)

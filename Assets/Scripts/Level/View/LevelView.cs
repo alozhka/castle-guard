@@ -1,6 +1,7 @@
 using CastleGuard.App;
 using CastleGuard.Economy;
 using System.Collections.Generic;
+using CastleGuard.Level.Model;
 using CastleGuard.Level.ViewModel;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -28,6 +29,7 @@ namespace CastleGuard.Level.View
 
         private readonly Dictionary<string, TowerView> _towers = new();
         private readonly List<WallView> _walls = new();
+        private LevelModel _model;
         private LevelViewModel _viewModel;
         private LevelSource _source;
         private LevelDefinition _displayedLevel;
@@ -43,9 +45,10 @@ namespace CastleGuard.Level.View
         {
             _source = new LevelSource(levels, generatedLevel);
             int initialIndex = _source.GetInitialIndex(GameSave.Progress.LevelNumber - 1);
-            _viewModel = new LevelViewModel(
+            _model = new LevelModel(
                 _source.CreateAttempt, GameSave.Wallet, GameSave.Progress.CompleteLevel,
                 economySettings.HintPrice, initialIndex);
+            _viewModel = new LevelViewModel(_model);
         }
 
         private void OnEnable()
@@ -90,7 +93,6 @@ namespace CastleGuard.Level.View
         {
             foreach (TowerView tower in _towers.Values)
             {
-                tower.Onclick -= HandleTowerClicked;
                 tower.gameObject.SetActive(false);
                 Destroy(tower.gameObject);
             }
@@ -109,8 +111,7 @@ namespace CastleGuard.Level.View
                 TowerView tower = Instantiate(towerPrefab, transform);
                 tower.name = $"Tower_{definition.id}";
                 tower.transform.localPosition = definition.position;
-                tower.SetLetter(definition.id);
-                tower.Onclick += HandleTowerClicked;
+                tower.Initialize(_viewModel.CreateTower(definition.id), SampleClock);
                 _towers.Add(definition.id, tower);
             }
 
@@ -127,7 +128,7 @@ namespace CastleGuard.Level.View
 
         private void OnDestroy()
         {
-            _viewModel?.Dispose();
+            _model?.Dispose();
             _source?.Dispose();
         }
 
@@ -164,12 +165,6 @@ namespace CastleGuard.Level.View
             _clockWasRunning = clockIsRunning;
         }
 
-        private void HandleTowerClicked(string towerId)
-        {
-            SampleClock();
-            _viewModel.MoveTo(towerId);
-        }
-
         private void Render()
         {
             if (_displayedLevel != _source.Current)
@@ -186,11 +181,6 @@ namespace CastleGuard.Level.View
             undoButton.interactable = _viewModel.CanUndo;
             restartButton.interactable = _viewModel.CanRestart;
             hintButton.interactable = _viewModel.CanBuyHint;
-
-            foreach (KeyValuePair<string, TowerView> tower in _towers)
-            {
-                tower.Value.SetState(tower.Key == _viewModel.CurrentTower, tower.Key == _viewModel.HintedTower);
-            }
 
             for (int i = 0; i < _walls.Count; i++)
             {

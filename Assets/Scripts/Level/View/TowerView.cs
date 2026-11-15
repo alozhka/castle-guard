@@ -1,4 +1,5 @@
 using System;
+using CastleGuard.Level.ViewModel;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -13,26 +14,55 @@ namespace CastleGuard.Level.View
         [SerializeField] private Color hintColor = new(0.32f, 0.9f, 1f);
         private Color _defaultColor;
 
-        public event Action<string> Onclick;
+        private TowerViewModel _viewModel;
+        private Action _sampleClock;
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void Initialize(TowerViewModel viewModel, Action sampleClock)
         {
-            if (eventData.button == PointerEventData.InputButton.Left)
+            Unsubscribe();
+            _viewModel = viewModel;
+            _sampleClock = sampleClock;
+            letter = _viewModel.Id;
+            RefreshLabel();
+            if (isActiveAndEnabled)
             {
-                Onclick?.Invoke(letter);
+                _viewModel.StateChanged += Render;
+                Render();
             }
         }
 
-        public void SetState(bool current, bool hinted)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            Color color = current ? new Color(1f, 0.58f, 0.2f) : _defaultColor;
-            innerCircle.color = hinted ? hintColor : color;
+            if (eventData.button == PointerEventData.InputButton.Left && _viewModel != null)
+            {
+                _sampleClock?.Invoke();
+                _viewModel.Click();
+            }
         }
 
-        public void SetLetter(string value)
+        private void Render()
         {
-            letter = value;
-            RefreshLabel();
+            Color color = _viewModel.IsCurrent ? new Color(1f, 0.58f, 0.2f) : _defaultColor;
+            innerCircle.color = _viewModel.IsHinted ? hintColor : color;
+        }
+
+        private void OnEnable()
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.StateChanged += Render;
+                Render();
+            }
+        }
+
+        private void OnDisable() => Unsubscribe();
+
+        private void Unsubscribe()
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.StateChanged -= Render;
+            }
         }
 
         private void Awake()

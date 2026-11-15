@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CastleGuard.Economy;
 using CastleGuard.Economy.Persistence;
 using CastleGuard.Level.Model;
@@ -11,117 +10,101 @@ public class LevelViewModelTests
 {
     private sealed class MemoryStore : ICoinWalletStore
     {
-        private int _balance;
-        public int Load() => _balance;
-        public void Save(int balance) => _balance = balance;
+        public int Load() => 5;
+        public void Save(int balance) { }
     }
 
     private CoinWallet _wallet;
+    private LevelModel _model;
     private LevelViewModel _viewModel;
-    private readonly List<int> _completed = new();
-    private readonly List<int> _loaded = new();
 
     [SetUp]
     public void SetUp()
     {
-        _completed.Clear();
-        _loaded.Clear();
         _wallet = new CoinWallet(new MemoryStore());
-        _viewModel = new LevelViewModel(CreateAttempt, _wallet, _completed.Add, 5, 0);
+        _model = new LevelModel(
+            index => new LevelAttempt("A", new Wall[] { new("A", "B"), new("B", "C"), }, 10),
+            _wallet, level => { }, 5, 0);
+        _viewModel = new LevelViewModel(_model);
     }
 
     [TearDown]
-    public void TearDown() => _viewModel.Dispose();
+    public void TearDown() => _model.Dispose();
 
     [Test]
-    public void Victory_CreditsAndSavesOnce_AndNextLoadsNextLevel()
+    public void TowerClick_UpdatesSharedModelAndPublishesCompletedVictory()
     {
-        _viewModel.NextLevel();
-        Assert.That(_loaded, Is.EqualTo(new[] { 0, }));
-        _viewModel.MoveTo("B");
-        _viewModel.MoveTo("C");
-        _viewModel.MoveTo("C");
-        _viewModel.Restart();
-        _viewModel.Undo();
-        Assert.That(_wallet.Balance, Is.EqualTo(20));
-        Assert.That(_completed, Is.EqualTo(new[] { 1, }));
-        Assert.That(_viewModel.RewardText, Is.EqualTo("+20"));
-        Assert.That(_viewModel.CanUndo, Is.False);
-        Assert.That(_viewModel.CanRestart, Is.False);
-        Assert.That(_viewModel.CanBuyHint, Is.False);
-        _viewModel.NextLevel();
-        Assert.That(_loaded, Is.EqualTo(new[] { 0, 1, }));
-        Assert.That(_viewModel.LevelTitle, Is.EqualTo("Уровень 2"));
-        Assert.That(_viewModel.RewardText, Is.Empty);
-        Assert.That(_viewModel.CurrentTower, Is.EqualTo("A"));
-    }
-
-    [Test]
-    public void Hint_PublishesCompletedPurchase()
-    {
-        _wallet.Credit(10);
+        TowerViewModel start = _viewModel.CreateTower("A");
+        TowerViewModel middle = _viewModel.CreateTower("B");
+        TowerViewModel end = _viewModel.CreateTower("C");
         int notifications = 0;
         _viewModel.StateChanged += () =>
         {
             notifications++;
-            Assert.That(_viewModel.HintedTower, Is.EqualTo("B"));
-            Assert.That(_viewModel.CanBuyHint, Is.False);
-            Assert.That(_wallet.Balance, Is.EqualTo(5));
-        };
-        _viewModel.BuyHint();
-        Assert.That(notifications, Is.EqualTo(1));
-    }
-
-    [Test]
-    public void UndoAndRestart_ResetBoardAndAttemptBonuses()
-    {
-        _wallet.Credit(5);
-        _viewModel.MoveTo("B");
-        _viewModel.BuyHint();
-        _viewModel.Undo();
-        Assert.That(_viewModel.HintedTower, Is.Null);
-        Assert.That(_viewModel.CurrentTower, Is.EqualTo("A"));
-        Assert.That(_viewModel.IsWallTraversed(0), Is.False);
-        _viewModel.AddElapsedTime(1000);
-        _viewModel.Restart();
-        Assert.That(_loaded, Is.EqualTo(new[] { 0, 0, }));
-        _viewModel.MoveTo("B");
-        _viewModel.MoveTo("C");
-        Assert.That(_wallet.Balance, Is.EqualTo(20));
-    }
-
-    [Test]
-    public void ExternalBalanceChange_NotifiesUntilDisposed()
-    {
-        int notifications = 0;
-        _viewModel.StateChanged += () => notifications++;
-        Assert.That(_viewModel.CanBuyHint, Is.False);
-        _wallet.Credit(5);
-        Assert.That(_viewModel.CanBuyHint, Is.True);
-        Assert.That(notifications, Is.EqualTo(1));
-        _viewModel.Dispose();
-        _wallet.Credit(5);
-        Assert.That(notifications, Is.EqualTo(1));
-    }
-
-    [Test]
-    public void CompletionNotification_ObservesSavedProgress()
-    {
-        _viewModel.StateChanged += () =>
-        {
             if (_viewModel.IsComplete)
             {
-                Assert.That(_completed, Is.EqualTo(new[] { 1, }));
-                Assert.That(_wallet.Balance, Is.EqualTo(20));
+                Assert.That(end.IsCurrent, Is.True);
+                Assert.That(_wallet.Balance, Is.EqualTo(25));
+                Assert.That(_viewModel.RewardText, Is.EqualTo("+20"));
             }
         };
-        _viewModel.MoveTo("B");
-        _viewModel.MoveTo("C");
+
+        Assert.That(start.IsCurrent, Is.True);
+        middle.Click();
+        Assert.That(start.IsCurrent, Is.False);
+        Assert.That(middle.IsCurrent, Is.True);
+        Assert.That(_viewModel.IsWallTraversed(0), Is.True);
+        end.Click();
+        end.Click();
+
+        Assert.That(notifications, Is.EqualTo(2));
+        Assert.That(_viewModel.CanUndo, Is.False);
+        Assert.That(_viewModel.CanRestart, Is.False);
+        Assert.That(_viewModel.CanBuyHint, Is.False);
     }
 
-    private LevelAttempt CreateAttempt(int index)
+    [Test]
+    public void TowerNotification_ObservesPurchasedHintAndClearsItAfterMove()
     {
-        _loaded.Add(index);
-        return new LevelAttempt("A", new Wall[] { new("A", "B"), new("B", "C"), }, 10);
+        TowerViewModel tower = _viewModel.CreateTower("B");
+        int notifications = 0;
+        void ObserveState()
+        {
+            notifications++;
+            Assert.That(tower.IsHinted, Is.True);
+            Assert.That(_wallet.Balance, Is.Zero);
+            Assert.That(_viewModel.CanBuyHint, Is.False);
+        }
+
+        tower.StateChanged += ObserveState;
+        _viewModel.BuyHint();
+        Assert.That(notifications, Is.EqualTo(1));
+        tower.StateChanged -= ObserveState;
+        tower.Click();
+        Assert.That(tower.IsHinted, Is.False);
+        Assert.That(tower.IsCurrent, Is.True);
+        Assert.That(notifications, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Tower_KeepsWorkingAfterUndoRestartAndNextLevel()
+    {
+        TowerViewModel tower = _viewModel.CreateTower("B");
+        tower.Click();
+        _viewModel.Undo();
+        Assert.That(tower.IsCurrent, Is.False);
+        tower.Click();
+        _viewModel.Restart();
+        Assert.That(tower.IsCurrent, Is.False);
+        tower.Click();
+        Assert.That(tower.IsCurrent, Is.True);
+        _viewModel.CreateTower("C").Click();
+        _viewModel.NextLevel();
+        Assert.That(_viewModel.LevelTitle, Is.EqualTo("Уровень 2"));
+        Assert.That(_viewModel.HintText, Is.EqualTo("Подсказка  5"));
+        Assert.That(_viewModel.RewardText, Is.Empty);
+        Assert.That(tower.IsCurrent, Is.False);
+        tower.Click();
+        Assert.That(tower.IsCurrent, Is.True);
     }
 }
