@@ -1,7 +1,4 @@
-using CastleGuard.App;
-using CastleGuard.Economy;
 using System.Collections.Generic;
-using CastleGuard.Level.Model;
 using CastleGuard.Level.ViewModel;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -11,8 +8,6 @@ namespace CastleGuard.Level.View
 {
     public class LevelView : MonoBehaviour
     {
-        [SerializeField] private LevelDefinition[] levels;
-        [SerializeField] private LevelDefinition generatedLevel;
         [SerializeField] private TowerView towerPrefab;
         [SerializeField] private WallView wallPrefab;
         [SerializeField] private Physics2DRaycaster boardRaycaster;
@@ -21,7 +16,6 @@ namespace CastleGuard.Level.View
         [SerializeField] private Button restartButton;
         [SerializeField] private Button hintButton;
         [SerializeField] private Text hintLabel;
-        [SerializeField] private EconomySettings economySettings;
         [SerializeField] private GameObject victoryPanel;
         [SerializeField] private Button nextButton;
         [SerializeField] private Text levelTitle;
@@ -29,9 +23,7 @@ namespace CastleGuard.Level.View
 
         private readonly Dictionary<string, TowerView> _towers = new();
         private readonly List<WallView> _walls = new();
-        private LevelModel _model;
         private LevelViewModel _viewModel;
-        private LevelSource _source;
         private LevelDefinition _displayedLevel;
         private bool _hasFocus;
         private bool _isPaused;
@@ -41,19 +33,30 @@ namespace CastleGuard.Level.View
         private bool IsClockRunning => _viewModel is { IsComplete: false }
             && _hasFocus && !_isPaused && Time.timeScale > 0;
 
-        private void Awake()
+        public void Initialize(LevelViewModel viewModel)
         {
-            _source = new LevelSource(levels, generatedLevel);
-            int initialIndex = _source.GetInitialIndex(GameSave.Progress.LevelNumber - 1);
-            _model = new LevelModel(
-                _source.CreateAttempt, GameSave.Wallet, GameSave.Progress.CompleteLevel,
-                economySettings.HintPrice, initialIndex);
-            _viewModel = new LevelViewModel(_model);
+            if (_viewModel != null)
+            {
+                _viewModel.StateChanged -= Render;
+            }
+
+            _viewModel = viewModel;
+            _displayedLevel = null;
+            if (isActiveAndEnabled)
+            {
+                OnEnable();
+            }
         }
 
         private void OnEnable()
         {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
             _hasFocus = Application.isFocused;
+            _viewModel.StateChanged -= Render;
             _viewModel.StateChanged += Render;
             Render();
             ResetClock();
@@ -61,7 +64,10 @@ namespace CastleGuard.Level.View
 
         private void OnDisable()
         {
-            _viewModel.StateChanged -= Render;
+            if (_viewModel != null)
+            {
+                _viewModel.StateChanged -= Render;
+            }
         }
 
         private void Update()
@@ -126,12 +132,6 @@ namespace CastleGuard.Level.View
             _displayedLevel = level;
         }
 
-        private void OnDestroy()
-        {
-            _model?.Dispose();
-            _source?.Dispose();
-        }
-
         public void Undo() => _viewModel.Undo();
 
         public void Restart()
@@ -167,9 +167,9 @@ namespace CastleGuard.Level.View
 
         private void Render()
         {
-            if (_displayedLevel != _source.Current)
+            if (_displayedLevel != _viewModel.CurrentLevel)
             {
-                BuildBoard(_source.Current);
+                BuildBoard(_viewModel.CurrentLevel);
             }
 
             levelTitle.text = _viewModel.LevelTitle;

@@ -46,11 +46,6 @@ namespace CastleGuard.Level
 
         public void ValidateEconomy()
         {
-            if (baseReward < 0)
-            {
-                throw new InvalidOperationException("Base reward must be nonnegative.");
-            }
-
             long maximumReward = (long)baseReward * 2;
             if (maximumReward > int.MaxValue)
             {

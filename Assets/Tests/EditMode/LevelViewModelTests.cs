@@ -1,8 +1,11 @@
+using System.Linq;
 using CastleGuard.Economy;
 using CastleGuard.Economy.Persistence;
+using CastleGuard.Level;
 using CastleGuard.Level.Model;
 using CastleGuard.Level.ViewModel;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace CastleGuard.Tests.EditMode;
 
@@ -14,6 +17,9 @@ public class LevelViewModelTests
         public void Save(int balance) { }
     }
 
+    private LevelDefinition _firstLevel;
+    private LevelDefinition _nextLevel;
+    private LevelDefinition _currentLevel;
     private CoinWallet _wallet;
     private LevelModel _model;
     private LevelViewModel _viewModel;
@@ -21,15 +27,43 @@ public class LevelViewModelTests
     [SetUp]
     public void SetUp()
     {
+        _firstLevel = ScriptableObject.CreateInstance<LevelDefinition>();
+        JsonUtility.FromJsonOverwrite(
+            "{\"startingTower\":\"A\",\"walls\":[{\"from\":\"A\",\"to\":\"B\"},{\"from\":\"B\",\"to\":\"C\"}]}",
+            _firstLevel);
+        _nextLevel = Object.Instantiate(_firstLevel);
         _wallet = new CoinWallet(new MemoryStore());
-        _model = new LevelModel(
-            index => new LevelAttempt("A", new Wall[] { new("A", "B"), new("B", "C"), }, 10),
-            _wallet, level => { }, 5, 0);
-        _viewModel = new LevelViewModel(_model);
+        _model = new LevelModel(CreateAttempt, _wallet, level => { }, 5, 0);
+        _viewModel = new LevelViewModel(_model, () => _currentLevel);
     }
 
     [TearDown]
-    public void TearDown() => _model.Dispose();
+    public void TearDown()
+    {
+        _model.Dispose();
+        Object.DestroyImmediate(_firstLevel);
+        Object.DestroyImmediate(_nextLevel);
+    }
+
+    [Test]
+    public void NextLevel_ExposesNewBoardBeforeNotifyingView()
+    {
+        Assert.That(_viewModel.CurrentLevel, Is.SameAs(_firstLevel));
+        _viewModel.CreateTower("B").Click();
+        _viewModel.CreateTower("C").Click();
+        int notifications = 0;
+        _viewModel.StateChanged += () =>
+        {
+            notifications++;
+            Assert.That(_viewModel.CurrentLevel, Is.SameAs(_nextLevel));
+            Assert.That(_viewModel.LevelTitle, Is.EqualTo("Уровень 2"));
+            Assert.That(_viewModel.CreateTower("A").IsCurrent, Is.True);
+        };
+
+        _viewModel.NextLevel();
+
+        Assert.That(notifications, Is.EqualTo(1));
+    }
 
     [Test]
     public void TowerClick_UpdatesSharedModelAndPublishesCompletedVictory()
@@ -107,4 +141,12 @@ public class LevelViewModelTests
         tower.Click();
         Assert.That(tower.IsCurrent, Is.True);
     }
+
+    private LevelAttempt CreateAttempt(int index)
+    {
+        _currentLevel = index == 0 ? _firstLevel : _nextLevel;
+        return new LevelAttempt(_currentLevel.StartingTower,
+            _currentLevel.Walls.Select(wall => new Wall(wall.from, wall.to)), _currentLevel.BaseReward);
+    }
+
 }

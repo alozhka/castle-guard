@@ -2050,6 +2050,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1817436748}
   - component: {fileID: 1817436750}
+  - component: {fileID: 1817436751}
   m_Layer: 0
   m_Name: LevelField
   m_TagString: Untagged
@@ -2084,11 +2085,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d50b4105bf0b4f9287312cc4d6e4dfa6, type: 3}
   m_Name:
   m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.LevelView
-  levels:
-  - {fileID: 11400000, guid: 31e1f8ef9adf4a19a14bb4edbb2ea06e, type: 2}
-  - {fileID: 11400000, guid: 538a444d84ca4b5ab67099f79f7705bb, type: 2}
-  - {fileID: 11400000, guid: 80f90598f9584ddd976628e9d8c2742f, type: 2}
-  generatedLevel: {fileID: 11400000, guid: fafc0d1b531c4f42b4046d0f61c4be45, type: 2}
   towerPrefab: {fileID: 4890596964370599710, guid: e84f6d7f58ee74ff7915ea38dc4d7ee7, type: 3}
   wallPrefab: {fileID: 1817436750, guid: 2fd27187c314496b91503eaa8817b2cf, type: 3}
   boardRaycaster: {fileID: 360417896}
@@ -2096,11 +2092,29 @@ MonoBehaviour:
   restartButton: {fileID: 1900000102}
   hintButton: {fileID: 1900000202}
   hintLabel: {fileID: 1900000213}
-  economySettings: {fileID: 11400000, guid: 8d2cc35648644db6b20f97faaac6ec98, type: 2}
   victoryPanel: {fileID: 921882267}
   nextButton: {fileID: 950751567}
   levelTitle: {fileID: 1370603060}
   victoryReward: {fileID: 2000000122}
+--- !u!114 &1817436751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817436747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b40b444142b94bc49c2ba3f80388d5e3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.LevelBootstrap
+  levels:
+  - {fileID: 11400000, guid: 31e1f8ef9adf4a19a14bb4edbb2ea06e, type: 2}
+  - {fileID: 11400000, guid: 538a444d84ca4b5ab67099f79f7705bb, type: 2}
+  - {fileID: 11400000, guid: 80f90598f9584ddd976628e9d8c2742f, type: 2}
+  generatedLevel: {fileID: 11400000, guid: fafc0d1b531c4f42b4046d0f61c4be45, type: 2}
+  economySettings: {fileID: 11400000, guid: 8d2cc35648644db6b20f97faaac6ec98, type: 2}
+  levelView: {fileID: 1817436750}
 --- !u!114 &1845368304
 MonoBehaviour:
   m_ObjectHideFlags: 0
