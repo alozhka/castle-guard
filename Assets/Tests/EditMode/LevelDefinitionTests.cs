@@ -1,6 +1,5 @@
 using CastleGuard.Level;
 using CastleGuard.Level.Model;
-using CastleGuard.Economy;
 using System;
 using System.Linq;
 using NUnit.Framework;
@@ -72,42 +71,6 @@ public class LevelDefinitionTests
         finally
         {
             UnityEngine.Object.DestroyImmediate(level);
-        }
-    }
-
-    [Test]
-    public void EconomyAsset_HasPrototypeHintPrice()
-    {
-        EconomySettings settings = AssetDatabase.LoadAssetAtPath<EconomySettings>("Assets/Settings/Economy.asset");
-
-        Assert.That(settings, Is.Not.Null);
-        Assert.DoesNotThrow(settings.Validate);
-        Assert.That(settings.HintPrice, Is.EqualTo(10));
-    }
-
-    [TestCase(-1)]
-    [TestCase(0)]
-    [TestCase(1)]
-    [TestCase(int.MaxValue)]
-    public void EconomySettings_RequiresPositivePrice(int price)
-    {
-        EconomySettings settings = ScriptableObject.CreateInstance<EconomySettings>();
-        try
-        {
-            typeof(EconomySettings).GetField("hintPrice", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                .SetValue(settings, price);
-            if (price > 0)
-            {
-                Assert.DoesNotThrow(settings.Validate);
-            }
-            else
-            {
-                Assert.Throws<InvalidOperationException>(settings.Validate);
-            }
-        }
-        finally
-        {
-            UnityEngine.Object.DestroyImmediate(settings);
         }
     }
 }

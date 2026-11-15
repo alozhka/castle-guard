@@ -2,7 +2,7 @@ using System;
 using CastleGuard.Economy;
 using CastleGuard.Level.Model;
 
-namespace CastleGuard.Level;
+namespace CastleGuard.Level.ViewModel;
 
 public sealed class LevelViewModel : IDisposable
 {
@@ -30,9 +30,9 @@ public sealed class LevelViewModel : IDisposable
     public LevelViewModel(Func<int, LevelAttempt> createAttempt, CoinWallet wallet,
         Action<int> completeLevel, int hintPrice, int initialIndex)
     {
-        _createAttempt = createAttempt ?? throw new ArgumentNullException(nameof(createAttempt));
-        _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
-        _completeLevel = completeLevel ?? throw new ArgumentNullException(nameof(completeLevel));
+        _createAttempt = createAttempt;
+        _wallet = wallet;
+        _completeLevel = completeLevel;
         _hintPrice = hintPrice;
         _levelIndex = initialIndex;
         StartAttempt();

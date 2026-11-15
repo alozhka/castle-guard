@@ -1,11 +1,11 @@
 using CastleGuard.App;
 using CastleGuard.Economy;
 using CastleGuard.Economy.Persistence;
-using CastleGuard.Level;
 using CastleGuard.Progress;
 using System;
 using System.Collections;
 using System.Reflection;
+using CastleGuard.Level.View;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;

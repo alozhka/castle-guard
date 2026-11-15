@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using CastleGuard.Economy;
 using CastleGuard.Economy.Persistence;
-using CastleGuard.Level;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.ViewModel;
 using NUnit.Framework;
 
 namespace CastleGuard.Tests.EditMode;

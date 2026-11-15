@@ -1,12 +1,12 @@
 using CastleGuard.App;
 using CastleGuard.Economy;
-using CastleGuard.Level.View;
 using System.Collections.Generic;
+using CastleGuard.Level.ViewModel;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace CastleGuard.Level
+namespace CastleGuard.Level.View
 {
     public class LevelView : MonoBehaviour
     {
