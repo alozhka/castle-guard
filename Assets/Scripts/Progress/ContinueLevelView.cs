@@ -10,7 +10,7 @@ namespace CastleGuard.Progress
 
         private void OnEnable()
         {
-            label.text = $"Продолжить с уровня {GameSave.Progress.LevelNumber}";
+            label.text = $"Продолжить с уровня {GameSession.Model.Progress.LevelNumber}";
         }
     }
 }

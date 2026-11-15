@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using CastleGuard.Economy;
-using CastleGuard.Economy.Persistence;
 using CastleGuard.Level.Model;
 using NUnit.Framework;
 
@@ -8,13 +7,6 @@ namespace CastleGuard.Tests.EditMode;
 
 public class LevelModelTests
 {
-    private sealed class MemoryStore : ICoinWalletStore
-    {
-        private int _balance;
-        public int Load() => _balance;
-        public void Save(int balance) => _balance = balance;
-    }
-
     private CoinWallet _wallet;
     private LevelModel _model;
     private readonly List<int> _completed = new();
@@ -25,7 +17,7 @@ public class LevelModelTests
     {
         _completed.Clear();
         _loaded.Clear();
-        _wallet = new CoinWallet(new MemoryStore());
+        _wallet = new CoinWallet(new MemoryPlayerProgressStore());
         _model = new LevelModel(CreateAttempt, _wallet, _completed.Add, 5, 0);
     }
 

@@ -1,6 +1,5 @@
 using CastleGuard.App;
-using CastleGuard.Economy;
-using CastleGuard.Economy.Persistence;
+using CastleGuard.Progress.Persistence;
 using CastleGuard.Progress;
 using System;
 using System.Collections;
@@ -23,12 +22,11 @@ public class ProgressTests
     {
         string progressKey = $"CastleGuard.Tests.Progress.{Guid.NewGuid():N}";
         string walletKey = $"CastleGuard.Tests.Coins.{Guid.NewGuid():N}";
-        FieldInfo progressField = typeof(GameSave).GetField("_progress", BindingFlags.Static | BindingFlags.NonPublic);
-        FieldInfo walletField = typeof(GameSave).GetField("_wallet", BindingFlags.Static | BindingFlags.NonPublic);
-        PlayerProgress originalProgress = GameSave.Progress;
-        CoinWallet originalWallet = GameSave.Wallet;
-        progressField.SetValue(null, new PlayerProgress(progressKey));
-        walletField.SetValue(null, new CoinWallet(new PlayerPrefsCoinWalletStore(walletKey)));
+        FieldInfo modelField = typeof(GameSession).GetField("_model", BindingFlags.Static | BindingFlags.NonPublic);
+        GameModel originalModel = GameSession.Model;
+        GameModel model = new(Resources.Load<GameSettings>("GameSettings"),
+            new PlayerProgress(new PlayerPrefsPlayerProgressStore(progressKey, walletKey)));
+        modelField.SetValue(null, model);
 
         try
         {
@@ -39,25 +37,24 @@ public class ProgressTests
             Button hintButton = GetButton(controller, "hintButton");
             Assert.That(hintButton.interactable, Is.False);
             controller.enabled = false;
-            GameSave.Wallet.Credit(10);
+            model.Progress.Wallet.Credit(10);
             Assert.That(hintButton.interactable, Is.False);
             controller.enabled = true;
             Assert.That(hintButton.interactable, Is.True);
             hintButton.onClick.Invoke();
-            Assert.That(GameSave.Wallet.Balance, Is.Zero);
+            Assert.That(model.Progress.Wallet.Balance, Is.Zero);
             Assert.That(hintButton.interactable, Is.False);
             GetButton(controller, "restartButton").onClick.Invoke();
             ClickTower(controller, "B");
             GetButton(controller, "undoButton").onClick.Invoke();
             Assert.That(GetButton(controller, "undoButton").interactable, Is.False);
             ClickTower(controller, "B");
-            Assert.That(new PlayerProgress(progressKey).LevelNumber, Is.EqualTo(1));
+            Assert.That(new PlayerProgress(new PlayerPrefsPlayerProgressStore(progressKey, walletKey)).LevelNumber, Is.EqualTo(1));
             ClickTower(controller, "C");
             ClickTower(controller, "D");
             ClickTower(controller, "A");
-            Assert.That(new PlayerProgress(progressKey).LevelNumber, Is.EqualTo(2));
+            Assert.That(new PlayerProgress(new PlayerPrefsPlayerProgressStore(progressKey, walletKey)).LevelNumber, Is.EqualTo(2));
 
-            progressField.SetValue(null, new PlayerProgress(progressKey));
             yield return SceneManager.LoadSceneAsync("MainMenu");
             yield return null;
 
@@ -74,8 +71,8 @@ public class ProgressTests
         }
         finally
         {
-            progressField.SetValue(null, originalProgress);
-            walletField.SetValue(null, originalWallet);
+            modelField.SetValue(null, originalModel);
+            model.Dispose();
             PlayerPrefs.DeleteKey(progressKey);
             PlayerPrefs.DeleteKey(walletKey);
             PlayerPrefs.Save();

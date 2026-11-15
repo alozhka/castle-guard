@@ -1,6 +1,5 @@
 using System.Linq;
 using CastleGuard.Economy;
-using CastleGuard.Economy.Persistence;
 using CastleGuard.Level;
 using CastleGuard.Level.Model;
 using CastleGuard.Level.ViewModel;
@@ -11,12 +10,6 @@ namespace CastleGuard.Tests.EditMode;
 
 public class LevelViewModelTests
 {
-    private sealed class MemoryStore : ICoinWalletStore
-    {
-        public int Load() => 5;
-        public void Save(int balance) { }
-    }
-
     private LevelDefinition _firstLevel;
     private LevelDefinition _nextLevel;
     private LevelDefinition _currentLevel;
@@ -32,7 +25,7 @@ public class LevelViewModelTests
             "{\"startingTower\":\"A\",\"walls\":[{\"from\":\"A\",\"to\":\"B\"},{\"from\":\"B\",\"to\":\"C\"}]}",
             _firstLevel);
         _nextLevel = Object.Instantiate(_firstLevel);
-        _wallet = new CoinWallet(new MemoryStore());
+        _wallet = new CoinWallet(new MemoryPlayerProgressStore { Balance = 5, });
         _model = new LevelModel(CreateAttempt, _wallet, level => { }, 5, 0);
         _viewModel = new LevelViewModel(_model, () => _currentLevel);
     }

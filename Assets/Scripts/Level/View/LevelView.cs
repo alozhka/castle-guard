@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using CastleGuard.App;
+using CastleGuard.Level.Model;
 using CastleGuard.Level.ViewModel;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -23,6 +25,8 @@ namespace CastleGuard.Level.View
 
         private readonly Dictionary<string, TowerView> _towers = new();
         private readonly List<WallView> _walls = new();
+        private GameModel _game;
+        private LevelModel _model;
         private LevelViewModel _viewModel;
         private LevelDefinition _displayedLevel;
         private bool _hasFocus;
@@ -32,6 +36,18 @@ namespace CastleGuard.Level.View
 
         private bool IsClockRunning => _viewModel is { IsComplete: false }
             && _hasFocus && !_isPaused && Time.timeScale > 0;
+
+        private void Awake()
+        {
+            _game = GameSession.Model;
+            _model = _game.StartLevel();
+            Initialize(new LevelViewModel(_model, () => _game.CurrentLevel));
+        }
+
+        private void OnDestroy()
+        {
+            _game?.EndLevel(_model);
+        }
 
         public void Initialize(LevelViewModel viewModel)
         {

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc177691c8dc48fe87327991387c73af, type: 3}
+  m_Name: GameSettings
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.App.GameSettings
+  levels:
+  - {fileID: 11400000, guid: 31e1f8ef9adf4a19a14bb4edbb2ea06e, type: 2}
+  - {fileID: 11400000, guid: 538a444d84ca4b5ab67099f79f7705bb, type: 2}
+  - {fileID: 11400000, guid: 80f90598f9584ddd976628e9d8c2742f, type: 2}
+  generatedLevel: {fileID: 11400000, guid: fafc0d1b531c4f42b4046d0f61c4be45, type: 2}
+  economy: {fileID: 11400000, guid: 8d2cc35648644db6b20f97faaac6ec98, type: 2}

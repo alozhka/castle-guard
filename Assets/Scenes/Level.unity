@@ -2050,7 +2050,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1817436748}
   - component: {fileID: 1817436750}
-  - component: {fileID: 1817436751}
   m_Layer: 0
   m_Name: LevelField
   m_TagString: Untagged
@@ -2096,25 +2095,6 @@ MonoBehaviour:
   nextButton: {fileID: 950751567}
   levelTitle: {fileID: 1370603060}
   victoryReward: {fileID: 2000000122}
---- !u!114 &1817436751
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1817436747}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b40b444142b94bc49c2ba3f80388d5e3, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: CastleGuard::CastleGuard.Level.LevelBootstrap
-  levels:
-  - {fileID: 11400000, guid: 31e1f8ef9adf4a19a14bb4edbb2ea06e, type: 2}
-  - {fileID: 11400000, guid: 538a444d84ca4b5ab67099f79f7705bb, type: 2}
-  - {fileID: 11400000, guid: 80f90598f9584ddd976628e9d8c2742f, type: 2}
-  generatedLevel: {fileID: 11400000, guid: fafc0d1b531c4f42b4046d0f61c4be45, type: 2}
-  economySettings: {fileID: 11400000, guid: 8d2cc35648644db6b20f97faaac6ec98, type: 2}
-  levelView: {fileID: 1817436750}
 --- !u!114 &1845368304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2858,46 +2838,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2135044863}
   m_CullTransparentMesh: 1
---- !u!1 &2100000000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2100000001}
-  - component: {fileID: 2100000002}
-  m_Layer: 0
-  m_Name: GameEconomy
-  m_TagString: Untagged
-  m_IsActive: 1
---- !u!4 &2100000001
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2100000000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
---- !u!114 &2100000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2100000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57bc6acff91344f5ad89862b0cfa91ea, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: CastleGuard::CastleGuard.App.GameEconomy
-  settings: {fileID: 11400000, guid: 8d2cc35648644db6b20f97faaac6ec98, type: 2}
 --- !u!1 &2000000000
 GameObject:
   m_ObjectHideFlags: 0
@@ -3383,4 +3323,3 @@ SceneRoots:
   - {fileID: 272934269}
   - {fileID: 135400939}
   - {fileID: 134546243}
-  - {fileID: 2100000001}

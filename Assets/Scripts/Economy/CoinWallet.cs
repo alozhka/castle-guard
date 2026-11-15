@@ -1,22 +1,22 @@
-using CastleGuard.Economy.Persistence;
 using System;
+using CastleGuard.Progress.Persistence;
 
 namespace CastleGuard.Economy;
 
 public sealed class CoinWallet
 {
-    private readonly ICoinWalletStore _store;
+    private readonly IPlayerProgressStore _store;
 
     public int Balance { get; private set; }
     public event Action<int> BalanceChanged;
 
-    public CoinWallet(ICoinWalletStore store)
+    public CoinWallet(IPlayerProgressStore store)
     {
-        _store = store;
-        int balance = _store.Load();
+        _store = store ?? throw new ArgumentNullException(nameof(store));
+        int balance = _store.LoadCoins();
         if (balance < 0)
         {
-            _store.Save(0);
+            _store.SaveCoins(0);
             balance = 0;
         }
 
@@ -57,7 +57,7 @@ public sealed class CoinWallet
             return;
         }
 
-        _store.Save(balance);
+        _store.SaveCoins(balance);
         Balance = balance;
         BalanceChanged?.Invoke(balance);
     }

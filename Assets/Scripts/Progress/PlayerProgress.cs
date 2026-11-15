@@ -1,30 +1,21 @@
 using System;
-using UnityEngine;
+using CastleGuard.Economy;
+using CastleGuard.Progress.Persistence;
 
 namespace CastleGuard.Progress;
 
 public sealed class PlayerProgress
 {
-    public const string DefaultKey = "CastleGuard.Progress.LevelNumber";
-
-    private readonly string _key;
+    private readonly IPlayerProgressStore _store;
 
     public int LevelNumber { get; private set; }
+    public CoinWallet Wallet { get; }
 
-    public PlayerProgress(string key = DefaultKey)
+    public PlayerProgress(IPlayerProgressStore store)
     {
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            throw new ArgumentException("A progress save key is required.", nameof(key));
-        }
-
-        _key = key;
-        LevelNumber = PlayerPrefs.GetInt(_key, 1);
-        if (LevelNumber < 1)
-        {
-            Debug.LogWarning("Invalid saved level number. Restoring 1.");
-            Save(1);
-        }
+        _store = store ?? throw new ArgumentNullException(nameof(store));
+        LevelNumber = _store.LoadLevel();
+        Wallet = new CoinWallet(_store);
     }
 
     public void CompleteLevel(int levelNumber)
@@ -44,8 +35,7 @@ public sealed class PlayerProgress
 
     private void Save(int levelNumber)
     {
-        PlayerPrefs.SetInt(_key, levelNumber);
-        PlayerPrefs.Save();
+        _store.SaveLevel(levelNumber);
         LevelNumber = levelNumber;
     }
 }

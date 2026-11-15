@@ -1,5 +1,4 @@
 using CastleGuard.Economy;
-using CastleGuard.Economy.Persistence;
 using CastleGuard.Level;
 using CastleGuard.Level.Model;
 using NUnit.Framework;
@@ -9,26 +8,6 @@ namespace CastleGuard.Tests.EditMode;
 
 public class HintServiceTests
 {
-    private sealed class MemoryStore : ICoinWalletStore
-    {
-        public int Balance;
-        public int Saves;
-        public bool FailSave;
-
-        public int Load() => Balance;
-
-        public void Save(int balance)
-        {
-            if (FailSave)
-            {
-                throw new InvalidOperationException();
-            }
-
-            Balance = balance;
-            Saves++;
-        }
-    }
-
     private static LevelAttempt CreateAttempt() =>
         new("A", new Wall[] { new("A", "B"), new("B", "C"), new("C", "D"), }, 10);
 
@@ -37,7 +16,7 @@ public class HintServiceTests
     [TestCase(0, false, 0)]
     public void Purchase_ChecksFundsAndChangesBonusOnlyOnSuccess(int balance, bool success, int remaining)
     {
-        MemoryStore store = new() { Balance = balance, };
+        MemoryPlayerProgressStore store = new() { Balance = balance, };
         CoinWallet wallet = new(store);
         LevelAttempt attempt = CreateAttempt();
         HintService service = new(wallet, attempt, 5);
@@ -60,7 +39,7 @@ public class HintServiceTests
     [Test]
     public void RepeatPurchase_RequiresSuccessfulMove_NotInvalidTapOrUndo()
     {
-        MemoryStore store = new() { Balance = 20, };
+        MemoryPlayerProgressStore store = new() { Balance = 20, };
         CoinWallet wallet = new(store);
         LevelAttempt attempt = CreateAttempt();
         HintService service = new(wallet, attempt, 5);
@@ -85,7 +64,7 @@ public class HintServiceTests
     [Test]
     public void NewAttempt_UnlocksPurchaseWithoutRefund()
     {
-        CoinWallet wallet = new(new MemoryStore { Balance = 15, });
+        CoinWallet wallet = new(new MemoryPlayerProgressStore { Balance = 15, });
         LevelAttempt first = CreateAttempt();
         Assert.That(new HintService(wallet, first, 5).Purchase().Status, Is.EqualTo(HintStatus.Forward));
 
@@ -100,7 +79,7 @@ public class HintServiceTests
     [Test]
     public void Victory_RejectsPurchaseAndPreservesReward()
     {
-        CoinWallet wallet = new(new MemoryStore { Balance = 20, });
+        CoinWallet wallet = new(new MemoryPlayerProgressStore { Balance = 20, });
         LevelAttempt attempt = CreateAttempt();
         HintService service = new(wallet, attempt, 5);
         attempt.TryMove("B");
@@ -118,7 +97,7 @@ public class HintServiceTests
     [TestCase(true)]
     public void DeadEnd_PurchaseSuggestsUndoWithoutMovingPlayer(bool hasFreeNeighbor)
     {
-        MemoryStore store = new() { Balance = 15, };
+        MemoryPlayerProgressStore store = new() { Balance = 15, };
         CoinWallet wallet = new(store);
         Wall[] walls = hasFreeNeighbor
             ? new Wall[] { new("A", "B"), new("B", "E"), new("E", "F"), new("F", "B"), new("A", "C"), new("C", "D"), new("D", "A"), }
@@ -144,7 +123,7 @@ public class HintServiceTests
     [Test]
     public void FailedSave_PreservesAttemptAndAllowsRetry()
     {
-        MemoryStore store = new() { Balance = 5, FailSave = true, };
+        MemoryPlayerProgressStore store = new() { Balance = 5, FailSave = true, };
         CoinWallet wallet = new(store);
         LevelAttempt attempt = CreateAttempt();
         HintService service = new(wallet, attempt, 5);
@@ -160,7 +139,7 @@ public class HintServiceTests
     [Test]
     public void BalanceNotification_CannotPurchaseTwice()
     {
-        MemoryStore store = new() { Balance = 20, };
+        MemoryPlayerProgressStore store = new() { Balance = 20, };
         CoinWallet wallet = new(store);
         HintService service = new(wallet, CreateAttempt(), 5);
         wallet.BalanceChanged += _ => Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Unavailable));
@@ -174,7 +153,7 @@ public class HintServiceTests
     [TestCase(-1)]
     public void NonpositivePrice_IsRejected(int price)
     {
-        CoinWallet wallet = new(new MemoryStore());
+        CoinWallet wallet = new(new MemoryPlayerProgressStore());
         Assert.Throws<ArgumentOutOfRangeException>(() => new HintService(wallet, CreateAttempt(), price));
     }
 }

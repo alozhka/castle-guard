@@ -1,69 +1,62 @@
-using CastleGuard.Progress;
 using System;
+using CastleGuard.Progress;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace CastleGuard.Tests.EditMode;
 
 public class PlayerProgressTests
 {
-    private string _key;
-
-    [SetUp]
-    public void SetUp()
-    {
-        _key = $"CastleGuard.Tests.Progress.{Guid.NewGuid():N}";
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        PlayerPrefs.DeleteKey(_key);
-        PlayerPrefs.Save();
-    }
-
     [Test]
-    public void NewPlayer_StartsAtFirstLevel()
+    public void NewPlayer_StartsAtFirstLevelWithNoCoins()
     {
-        PlayerProgress progress = new(_key);
-
+        PlayerProgress progress = new(new MemoryPlayerProgressStore());
         Assert.That(progress.LevelNumber, Is.EqualTo(1));
+        Assert.That(progress.Wallet.Balance, Is.Zero);
     }
 
     [Test]
-    public void Victory_PersistsNextLevelForAnotherSession()
+    public void LevelAndCoins_AreRestoredForAnotherSession()
     {
-        PlayerProgress progress = new(_key);
-        progress.CompleteLevel(1);
+        MemoryPlayerProgressStore store = new();
+        PlayerProgress progress = new(store);
+        progress.CompleteLevel(2);
+        progress.Wallet.Credit(25);
+        progress.Wallet.TrySpend(10);
 
-        PlayerProgress reopened = new(_key);
-        Assert.That(reopened.LevelNumber, Is.EqualTo(2));
-        reopened.CompleteLevel(2);
-        Assert.That(new PlayerProgress(_key).LevelNumber, Is.EqualTo(3));
+        PlayerProgress reopened = new(store);
+        Assert.That(reopened.LevelNumber, Is.EqualTo(3));
+        Assert.That(reopened.Wallet.Balance, Is.EqualTo(15));
+        reopened.CompleteLevel(3);
+        Assert.That(store.LevelNumber, Is.EqualTo(4));
+        Assert.That(store.Balance, Is.EqualTo(15));
+    }
+
+    [Test]
+    public void Changes_SaveLevelAndCoinsSeparately()
+    {
+        MemoryPlayerProgressStore store = new();
+        PlayerProgress progress = new(store);
+
+        progress.Wallet.Credit(10);
+        Assert.That(store.CoinSaves, Is.EqualTo(1));
+        Assert.That(store.LevelSaves, Is.Zero);
+
+        progress.CompleteLevel(1);
+        Assert.That(store.LevelSaves, Is.EqualTo(1));
+        Assert.That(store.CoinSaves, Is.EqualTo(1));
     }
 
     [Test]
     public void RepeatedVictory_DoesNotAdvanceOrLoseProgress()
     {
-        PlayerProgress progress = new(_key);
+        MemoryPlayerProgressStore store = new();
+        PlayerProgress progress = new(store);
         progress.CompleteLevel(5);
         progress.CompleteLevel(5);
         progress.CompleteLevel(1);
-
         Assert.That(progress.LevelNumber, Is.EqualTo(6));
-        Assert.That(new PlayerProgress(_key).LevelNumber, Is.EqualTo(6));
-    }
-
-    [TestCase(0)]
-    [TestCase(-10)]
-    public void InvalidSavedLevel_IsRepaired(int levelNumber)
-    {
-        PlayerPrefs.SetInt(_key, levelNumber);
-        LogAssert.Expect(LogType.Warning, "Invalid saved level number. Restoring 1.");
-
-        Assert.That(new PlayerProgress(_key).LevelNumber, Is.EqualTo(1));
-        Assert.That(PlayerPrefs.GetInt(_key), Is.EqualTo(1));
+        Assert.That(new PlayerProgress(store).LevelNumber, Is.EqualTo(6));
+        Assert.That(store.Saves, Is.EqualTo(1));
     }
 
     [TestCase(0)]
@@ -71,10 +64,39 @@ public class PlayerProgressTests
     [TestCase(int.MinValue)]
     public void InvalidCompletedLevel_DoesNotChangeSave(int levelNumber)
     {
-        PlayerProgress progress = new(_key);
+        MemoryPlayerProgressStore store = new();
+        PlayerProgress progress = new(store);
         progress.CompleteLevel(3);
-
         Assert.Throws<ArgumentOutOfRangeException>(() => progress.CompleteLevel(levelNumber));
-        Assert.That(new PlayerProgress(_key).LevelNumber, Is.EqualTo(4));
+        Assert.That(new PlayerProgress(store).LevelNumber, Is.EqualTo(4));
+    }
+
+    [Test]
+    public void BalanceNotification_ObservesSavedLevelAndCoins()
+    {
+        MemoryPlayerProgressStore store = new();
+        PlayerProgress progress = new(store);
+        progress.CompleteLevel(2);
+        progress.Wallet.BalanceChanged += balance =>
+        {
+            Assert.That(store.LevelNumber, Is.EqualTo(3));
+            Assert.That(store.Balance, Is.EqualTo(balance));
+        };
+        progress.Wallet.Credit(10);
+    }
+
+    [Test]
+    public void FailedSave_LeavesLevelAndBalanceUnchanged()
+    {
+        MemoryPlayerProgressStore store = new();
+        PlayerProgress progress = new(store);
+        progress.Wallet.Credit(10);
+        store.FailSave = true;
+        progress.Wallet.BalanceChanged += _ => Assert.Fail("Failed save must not notify.");
+        Assert.Throws<InvalidOperationException>(() => progress.CompleteLevel(1));
+        Assert.Throws<InvalidOperationException>(() => progress.Wallet.Credit(1));
+        Assert.Throws<InvalidOperationException>(() => progress.Wallet.TrySpend(1));
+        Assert.That(progress.LevelNumber, Is.EqualTo(1));
+        Assert.That(progress.Wallet.Balance, Is.EqualTo(10));
     }
 }
