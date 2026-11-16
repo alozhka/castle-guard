@@ -72,7 +72,8 @@ public sealed class GameModel : IDisposable
     private LevelDefinition CreateGeneratedLevel(int index)
     {
         ReleaseGeneratedLevel();
-        GeneratedLevel data = _generator.Generate($"Уровень {index + 1}");
+        int generatedLevelNumber = index - _settings.Levels.Count + 1;
+        GeneratedLevel data = _generator.Generate($"Уровень {index + 1}", generatedLevelNumber);
         _runtimeLevel = LevelDefinition.Create(data, _settings.GeneratedLevel.BaseReward);
         return _runtimeLevel;
     }

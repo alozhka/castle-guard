@@ -110,6 +110,25 @@ public class GameModelTests
         Assert.That(notifications, Is.Zero);
     }
 
+    [TestCase(1, 5, 6)]
+    [TestCase(5, 5, 6)]
+    [TestCase(6, 6, 8)]
+    [TestCase(10, 6, 8)]
+    [TestCase(11, 7, 10)]
+    [TestCase(16, 8, 12)]
+    [TestCase(21, 9, 14)]
+    [TestCase(100, 9, 14)]
+    public void BeyondCatalog_UsesGeneratedLevelNumberForDifficulty(int generatedLevelNumber, int towers, int walls)
+    {
+        _progress.CompleteLevel(_settings.Levels.Count + generatedLevelNumber - 1);
+
+        LevelModel level = _game.StartLevel();
+
+        Assert.That(level.LevelNumber, Is.EqualTo(_settings.Levels.Count + generatedLevelNumber));
+        Assert.That(_game.CurrentLevel.Towers.Count, Is.EqualTo(towers));
+        Assert.That(_game.CurrentLevel.Walls.Count, Is.EqualTo(walls));
+    }
+
     private static void CompleteFirstLevel(LevelModel level)
     {
         level.MoveTo("B");

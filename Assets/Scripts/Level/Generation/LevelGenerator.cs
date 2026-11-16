@@ -8,8 +8,10 @@ namespace CastleGuard.Level.Generation;
 
 public sealed class LevelGenerator
 {
-    public const string Version = "0.1.0";
+    public const string Version = "0.2.0";
     private const int MaximumAttempts = 128;
+    private const int LevelsPerStage = 5;
+    private const int MaximumStage = 4;
     private readonly int _attemptLimit;
 
     public LevelGenerator(int attemptLimit = MaximumAttempts)
@@ -22,19 +24,32 @@ public sealed class LevelGenerator
         _attemptLimit = attemptLimit;
     }
 
-    public GeneratedLevel Generate(string name)
+    public GeneratedLevel Generate(string name, int generatedLevelNumber = 1)
     {
         if (string.IsNullOrEmpty(name))
         {
             throw new ArgumentException("A level name is required.", nameof(name));
         }
 
+        if (generatedLevelNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(generatedLevelNumber));
+        }
+
+        int stage = Math.Min((generatedLevelNumber - 1) / LevelsPerStage, MaximumStage);
+        int towerCount = 5 + stage;
+        int wallCount = 6 + stage * 2;
         uint seed = Hash(name);
         RandomSource random = new(seed);
         for (int attempt = 0; attempt < _attemptLimit; attempt++)
         {
-            Vector2Int[] positions = PlaceTowers(random);
-            List<Edge> edges = BuildGraph(positions, random);
+            Vector2Int[] positions = PlaceTowers(towerCount, random);
+            List<Edge> edges = BuildGraph(positions, wallCount, random);
+            if (edges.Count != wallCount)
+            {
+                continue;
+            }
+
             GeneratedLevel result = CreateResult(name, seed, false, positions, edges, random);
             if (result != null)
             {
@@ -42,13 +57,12 @@ public sealed class LevelGenerator
             }
         }
 
-        Vector2Int[] reserve = { new(-2, -1), new(2, -1), new(0, 2), };
-        List<Edge> reserveEdges = new() { new Edge(0, 1), new Edge(1, 2), new Edge(2, 0) };
+        (Vector2Int[] reserve, List<Edge> reserveEdges) = CreateReserve(towerCount);
         return CreateResult(name, seed, true, reserve, reserveEdges, random)
                ?? throw new InvalidOperationException("The reserve level must be solvable.");
     }
 
-    private static Vector2Int[] PlaceTowers(RandomSource random)
+    private static Vector2Int[] PlaceTowers(int count, RandomSource random)
     {
         List<Vector2Int> grid = new(25);
         for (int x = -2; x <= 2; x++)
@@ -60,10 +74,10 @@ public sealed class LevelGenerator
         }
 
         Shuffle(grid, random);
-        return grid.GetRange(0, 6 + random.Next(3)).ToArray();
+        return grid.GetRange(0, count).ToArray();
     }
 
-    private static List<Edge> BuildGraph(Vector2Int[] positions, RandomSource random)
+    private static List<Edge> BuildGraph(Vector2Int[] positions, int target, RandomSource random)
     {
         List<Edge> candidates = new();
         for (int from = 0; from < positions.Length; from++)
@@ -108,7 +122,6 @@ public sealed class LevelGenerator
             return edges;
         }
 
-        int target = Math.Min(14, positions.Length + random.Next(5));
         foreach (Edge edge in candidates)
         {
             if (edges.Count == target)
@@ -123,6 +136,47 @@ public sealed class LevelGenerator
         }
 
         return edges;
+    }
+
+    private static (Vector2Int[], List<Edge>) CreateReserve(int towerCount)
+    {
+        // Each template is planar and has an Euler route and the stage's exact size.
+        return towerCount switch
+        {
+            5 => (
+                new Vector2Int[] { new(2, -2), new(-2, 1), new(-2, -2), new(2, 1), new(-1, 1), },
+                new List<Edge> { new(2, 4), new(0, 2), new(2, 3), new(1, 4), new(1, 2), new(0, 3), }
+            ),
+            6 => (
+                new Vector2Int[] { new(2, 0), new(1, -2), new(-1, 2), new(-1, -1), new(-2, 1), new(0, 0), },
+                new List<Edge> { new(1, 5), new(2, 3), new(1, 3), new(2, 4), new(0, 2), new(2, 5), new(0, 5), new(3, 5), }
+            ),
+            7 => (
+                new Vector2Int[] { new(-1, 2), new(-2, 2), new(2, 2), new(-1, 0), new(-2, -1), new(0, -1), new(0, 0), },
+                new List<Edge>
+                {
+                    new(2, 3), new(3, 6), new(1, 4), new(3, 5), new(3, 4),
+                    new(0, 3), new(1, 3), new(2, 6), new(5, 6), new(0, 2),
+                }
+            ),
+            8 => (
+                new Vector2Int[] { new(2, -2), new(-2, 1), new(0, 1), new(-2, -2), new(1, 1), new(2, 2), new(-2, 0), new(1, -1), },
+                new List<Edge>
+                {
+                    new(3, 4), new(0, 7), new(2, 6), new(0, 3), new(1, 6), new(2, 4),
+                    new(4, 5), new(4, 7), new(3, 7), new(1, 2), new(3, 6), new(5, 7),
+                }
+            ),
+            9 => (
+                new Vector2Int[] { new(-1, 2), new(-2, 0), new(-1, 0), new(0, -1), new(-1, -1), new(-2, -1), new(-2, 1), new(-2, -2), new(1, 2), },
+                new List<Edge>
+                {
+                    new(1, 4), new(4, 7), new(5, 7), new(0, 8), new(0, 3), new(2, 3), new(0, 6),
+                    new(3, 4), new(1, 5), new(3, 8), new(2, 6), new(1, 6), new(1, 2), new(0, 2),
+                }
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(towerCount)),
+        };
     }
 
     private static bool CanAdd(Edge edge, Vector2Int[] positions, List<Edge> edges)

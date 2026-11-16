@@ -12,14 +12,20 @@ namespace CastleGuard.Tests.EditMode;
 
 public class LevelGeneratorTests
 {
-    [Test]
-    public void Generate_ManyNames_ProducesPlayablePlanarLevels()
+    [TestCase(1, 5, 6)]
+    [TestCase(6, 6, 8)]
+    [TestCase(11, 7, 10)]
+    [TestCase(16, 8, 12)]
+    [TestCase(21, 9, 14)]
+    public void Generate_ManyNames_ProducesPlayablePlanarLevels(int generatedLevelNumber, int towers, int walls)
     {
         LevelGenerator generator = new();
         int ordinaryCount = 0;
         for (int seed = 0; seed < 300; seed++)
         {
-            GeneratedLevel level = generator.Generate("Уровень " + seed.ToString(CultureInfo.InvariantCulture));
+            GeneratedLevel level = generator.Generate("Уровень " + seed.ToString(CultureInfo.InvariantCulture), generatedLevelNumber);
+            Assert.That(level.Towers.Count, Is.EqualTo(towers), level.Name);
+            Assert.That(level.Walls.Count, Is.EqualTo(walls), level.Name);
             Validate(level);
             if (!level.IsFallback)
             {
@@ -30,17 +36,21 @@ public class LevelGeneratorTests
         Assert.That(ordinaryCount, Is.GreaterThan(270), "Generation should normally succeed before the reserve is used.");
     }
 
-    [Test]
-    public void Generate_SameName_RepeatsAllDataDespiteOtherCallsAndCulture()
+    [TestCase(1)]
+    [TestCase(6)]
+    [TestCase(11)]
+    [TestCase(16)]
+    [TestCase(21)]
+    public void Generate_SameName_RepeatsAllDataDespiteOtherCallsAndCulture(int generatedLevelNumber)
     {
         LevelGenerator generator = new();
-        GeneratedLevel first = generator.Generate("Уровень 4");
+        GeneratedLevel first = generator.Generate("Уровень 4", generatedLevelNumber);
         generator.Generate("Unrelated level");
         CultureInfo previous = CultureInfo.CurrentCulture;
         try
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
-            GeneratedLevel second = new LevelGenerator().Generate("Уровень 4");
+            GeneratedLevel second = new LevelGenerator().Generate("Уровень 4", generatedLevelNumber);
             AssertSame(first, second);
         }
         finally
@@ -49,14 +59,47 @@ public class LevelGeneratorTests
         }
     }
 
-    [Test]
-    public void Generate_ExhaustedAttempts_ReturnsRepeatablePlayableReserve()
+    [TestCase(1, 5, 6)]
+    [TestCase(6, 6, 8)]
+    [TestCase(11, 7, 10)]
+    [TestCase(16, 8, 12)]
+    [TestCase(21, 9, 14)]
+    public void Generate_ExhaustedAttempts_ReturnsRepeatablePlayableReserve(int generatedLevelNumber, int towers, int walls)
     {
         LevelGenerator generator = new(0);
-        GeneratedLevel first = generator.Generate("reserve");
+        GeneratedLevel first = generator.Generate("reserve", generatedLevelNumber);
         Assert.That(first.IsFallback, Is.True);
+        Assert.That(first.Towers.Count, Is.EqualTo(towers));
+        Assert.That(first.Walls.Count, Is.EqualTo(walls));
         Validate(first);
-        AssertSame(first, generator.Generate("reserve"));
+        AssertSame(first, generator.Generate("reserve", generatedLevelNumber));
+    }
+
+    [Test]
+    public void Generate_Progression_KeepsSizeForFiveLevelsThenIncreasesUpToLimit()
+    {
+        LevelGenerator generator = new();
+        for (int stage = 0; stage < 5; stage++)
+        {
+            for (int offset = 0; offset < 5; offset++)
+            {
+                int number = stage * 5 + offset + 1;
+                GeneratedLevel level = generator.Generate($"Уровень {number}", number);
+                Assert.That(level.Towers.Count, Is.EqualTo(5 + stage), level.Name);
+                Assert.That(level.Walls.Count, Is.EqualTo(6 + stage * 2), level.Name);
+            }
+        }
+
+        GeneratedLevel last = generator.Generate("Last", int.MaxValue);
+        Assert.That(last.Towers.Count, Is.EqualTo(9));
+        Assert.That(last.Walls.Count, Is.EqualTo(14));
+    }
+
+    [TestCase(0)]
+    [TestCase(-1)]
+    public void Generate_InvalidGeneratedLevelNumber_RejectsInput(int generatedLevelNumber)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new LevelGenerator().Generate("Level", generatedLevelNumber));
     }
 
     [Test]
@@ -64,7 +107,7 @@ public class LevelGeneratorTests
     {
         GeneratedLevel level = new LevelGenerator().Generate("hello");
         Assert.That(level.Seed, Is.EqualTo(0x4f9f2cabu));
-        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.1.0"));
+        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.2.0"));
     }
 
     [TestCase(null)]
