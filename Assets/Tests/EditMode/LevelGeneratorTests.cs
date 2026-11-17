@@ -36,6 +36,18 @@ public class LevelGeneratorTests
 
             Assert.That(level.Towers.Count, Is.EqualTo(towers), level.Name);
             Assert.That(level.Walls.Count, Is.EqualTo(walls), level.Name);
+            int perimeterTowers = level.Towers.Count(tower =>
+                Mathf.Approximately(Mathf.Abs(tower.Position.x), 1.8f)
+                || Mathf.Approximately(Mathf.Abs(tower.Position.y), 1.8f));
+            Assert.That(perimeterTowers, Is.EqualTo((towers * 2 + 1) / 3), level.Name);
+            int[] sideCounts =
+            {
+                level.Towers.Count(tower => Mathf.Approximately(tower.Position.x, -1.8f)),
+                level.Towers.Count(tower => Mathf.Approximately(tower.Position.x, 1.8f)),
+                level.Towers.Count(tower => Mathf.Approximately(tower.Position.y, -1.8f)),
+                level.Towers.Count(tower => Mathf.Approximately(tower.Position.y, 1.8f)),
+            };
+            Assert.That(sideCounts.Max() - sideCounts.Min(), Is.LessThanOrEqualTo(1), level.Name);
             Validate(level);
             generatedCount++;
         }
@@ -112,7 +124,7 @@ public class LevelGeneratorTests
     {
         GeneratedLevel level = new LevelGenerator().Generate("hello");
         Assert.That(level.Seed, Is.EqualTo(0x4f9f2cabu));
-        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.3.0"));
+        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.5.0"));
     }
 
     [TestCase(null)]

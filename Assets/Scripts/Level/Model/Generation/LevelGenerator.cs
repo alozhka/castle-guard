@@ -9,11 +9,13 @@ namespace CastleGuard.Level.Model.Generation;
 
 public sealed class LevelGenerator
 {
-    public const string Version = "0.3.0";
     private const int MaximumAttempts = 128;
     private const int LevelsPerStage = 5;
     private const int MaximumStage = 4;
+    private const int PerimeterLength = 16;
     private readonly int _attemptLimit;
+    
+    public const string Version = "0.5.0";
 
     public LevelGenerator(int attemptLimit = MaximumAttempts)
     {
@@ -55,17 +57,43 @@ public sealed class LevelGenerator
 
     private static Vector2Int[] PlaceTowers(int count, Random random)
     {
-        List<Vector2Int> grid = new(25);
-        for (int x = -2; x <= 2; x++)
+        List<Vector2Int> interior = new(9);
+        for (int x = -1; x <= 1; x++)
         {
-            for (int y = -2; y <= 2; y++)
+            for (int y = -1; y <= 1; y++)
             {
-                grid.Add(new Vector2Int(x, y));
+                interior.Add(new Vector2Int(x, y));
             }
         }
 
-        Shuffle(grid, random);
-        return grid.GetRange(0, count).ToArray();
+        Shuffle(interior, random);
+        int perimeterTowerCount = (count * 2 + 1) / 3;
+        List<Vector2Int> positions = PlacePerimeterTowers(perimeterTowerCount, random);
+        positions.AddRange(interior.GetRange(0, count - perimeterTowerCount));
+        Shuffle(positions, random);
+        return positions.ToArray();
+    }
+
+    private static List<Vector2Int> PlacePerimeterTowers(int count, Random random)
+    {
+        int offset = random.Next(PerimeterLength);
+        int direction = random.Next(2) == 0 ? 1 : -1;
+        List<Vector2Int> positions = new(count);
+        for (int i = 0; i < count; i++)
+        {
+            int index = (offset + direction * (i * PerimeterLength / count) + PerimeterLength) % PerimeterLength;
+            int step = index % 4;
+            Vector2Int position = (index / 4) switch
+            {
+                0 => new Vector2Int(-2 + step, 2),
+                1 => new Vector2Int(2, 2 - step),
+                2 => new Vector2Int(2 - step, -2),
+                _ => new Vector2Int(-2, -2 + step),
+            };
+            positions.Add(position);
+        }
+
+        return positions;
     }
 
     private static List<Edge> BuildGraph(Vector2Int[] positions, int target, Random random)
@@ -202,25 +230,32 @@ public sealed class LevelGenerator
             }
         }
 
+        // Проверяем, есть ли наложение путей с общей башней
         if (shared.HasValue)
         {
             Vector2Int origin = positions[shared.Value];
             Vector2Int first = positions[edge.From == shared ? edge.To : edge.From] - origin;
             Vector2Int second = positions[existing.From == shared ? existing.To : existing.From] - origin;
+            // Пути находятся на одной прямой и направлены в одну сторону от общей вершины
             return Cross(first, second) == 0 && Dot(first, second) > 0;
         }
 
+        // Проверяем две стены без общей башни
         return Intersects(positions[edge.From], positions[edge.To], positions[existing.From], positions[existing.To]);
     }
 
     private static bool Intersects(Vector2Int a, Vector2Int b, Vector2Int c, Vector2Int d)
     {
-        return Math.Max(a.x, b.x) >= Math.Min(c.x, d.x)
-               && Math.Max(c.x, d.x) >= Math.Min(a.x, b.x)
-               && Math.Max(a.y, b.y) >= Math.Min(c.y, d.y)
-               && Math.Max(c.y, d.y) >= Math.Min(a.y, b.y)
-               && Cross(b - a, c - a) * Cross(b - a, d - a) <= 0
-               && Cross(d - c, a - c) * Cross(d - c, b - c) <= 0;
+        return
+            // Перекрытие диапазонов координат (когда две стены лежат на одной прямой)
+            Math.Max(a.x, b.x) >= Math.Min(c.x, d.x)
+            && Math.Max(c.x, d.x) >= Math.Min(a.x, b.x)
+            && Math.Max(a.y, b.y) >= Math.Min(c.y, d.y)
+            && Math.Max(c.y, d.y) >= Math.Min(a.y, b.y)
+            // Перекрытие одной стеной над другой
+            && Cross(b - a, c - a) * Cross(b - a, d - a) <= 0
+            // Симметричное перекрытие
+            && Cross(d - c, a - c) * Cross(d - c, b - c) <= 0;
     }
 
     private static int Cross(Vector2Int a, Vector2Int b) => a.x * b.y - a.y * b.x;
@@ -268,6 +303,9 @@ public sealed class LevelGenerator
             }
         }
 
+        // Если в графе все нечетные вершины, то можно начинать с любой, в конце вернуться в начальную вершину.
+        // Если есть две нечётные, то надо начинать в одной из них и заканчивать в другой. Этот вариант нам подходит.
+        // Если нечетных вершин больше двух, то пройти невозможно.
         if (odd.Count != 0 && odd.Count != 2)
         {
             return false;
