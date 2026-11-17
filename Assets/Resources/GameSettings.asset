@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc177691c8dc48fe87327991387c73af, type: 3}
   m_Name: GameSettings
-  m_EditorClassIdentifier: CastleGuard::CastleGuard.App.GameSettings
+  m_EditorClassIdentifier: CastleGuard::CastleGuard.Model.GameSettings
   levels:
   - {fileID: 11400000, guid: 31e1f8ef9adf4a19a14bb4edbb2ea06e, type: 2}
   - {fileID: 11400000, guid: 538a444d84ca4b5ab67099f79f7705bb, type: 2}

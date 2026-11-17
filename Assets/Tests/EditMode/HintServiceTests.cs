@@ -1,8 +1,9 @@
-using CastleGuard.Economy;
-using CastleGuard.Level;
-using CastleGuard.Level.Model;
-using NUnit.Framework;
 using System;
+using CastleGuard.Economy;
+using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
+using CastleGuard.Level.Model.Hints;
+using NUnit.Framework;
 
 namespace CastleGuard.Tests.EditMode;
 

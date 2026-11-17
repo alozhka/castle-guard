@@ -1,6 +1,6 @@
 using System;
 
-namespace CastleGuard.Level.Model;
+namespace CastleGuard.Level.Model.Rewards;
 
 public static class LevelRewardCalculator
 {

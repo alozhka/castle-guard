@@ -1,4 +1,5 @@
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 using NUnit.Framework;
 
 namespace CastleGuard.Tests.EditMode;

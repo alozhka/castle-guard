@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 using UnityEngine;
 using Random = System.Random;
 
-namespace CastleGuard.Level.Generation;
+namespace CastleGuard.Level.Model.Generation;
 
 public sealed class LevelGenerator
 {

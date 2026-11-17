@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CastleGuard.Level.Generation;
-using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Generation;
 using UnityEngine;
 
-namespace CastleGuard.Level
+namespace CastleGuard.Level.Model.Definition
 {
     [CreateAssetMenu(menuName = "Castle Guard/Level")]
     public class LevelDefinition : ScriptableObject

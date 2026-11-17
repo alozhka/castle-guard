@@ -1,4 +1,4 @@
-namespace CastleGuard.Level.Model;
+namespace CastleGuard.Level.Model.Rewards;
 
 public readonly struct LevelReward
 {

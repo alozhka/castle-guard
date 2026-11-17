@@ -1,7 +1,7 @@
-using CastleGuard.App;
 using CastleGuard.Economy;
-using CastleGuard.Level;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
+using CastleGuard.Model;
 using CastleGuard.Progress;
 using NUnit.Framework;
 using UnityEngine;

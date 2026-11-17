@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using CastleGuard.Economy;
-using CastleGuard.Level;
+using CastleGuard.Level.Model.Definition;
 using UnityEngine;
 
-namespace CastleGuard.App
+namespace CastleGuard.Model
 {
     [CreateAssetMenu(menuName = "Castle Guard/Game Settings")]
     public sealed class GameSettings : ScriptableObject

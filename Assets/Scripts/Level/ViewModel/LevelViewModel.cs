@@ -1,5 +1,6 @@
 using System;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 
 namespace CastleGuard.Level.ViewModel;
 

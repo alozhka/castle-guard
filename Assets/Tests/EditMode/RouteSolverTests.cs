@@ -1,8 +1,9 @@
-using CastleGuard.Level.Model;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
+using NUnit.Framework;
 
 namespace CastleGuard.Tests.EditMode;
 

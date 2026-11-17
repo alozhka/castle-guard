@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CastleGuard.Level.Model.Definition;
 
 namespace CastleGuard.Level.Model;
 

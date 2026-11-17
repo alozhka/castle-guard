@@ -1,7 +1,7 @@
-using CastleGuard.Level;
-using CastleGuard.Level.Model;
 using System;
 using System.Linq;
+using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;

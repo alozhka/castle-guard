@@ -1,11 +1,11 @@
 using System;
-using CastleGuard.Level;
-using CastleGuard.Level.Generation;
-using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
+using CastleGuard.Level.Model.Generation;
+using CastleGuard.Model;
 using CastleGuard.Progress;
 using UnityEngine;
 
-namespace CastleGuard.App;
+namespace CastleGuard.Level.Model;
 
 public sealed class GameModel : IDisposable
 {

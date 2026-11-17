@@ -1,4 +1,4 @@
-namespace CastleGuard.Level.Model;
+namespace CastleGuard.Level.Model.Hints;
 
 public enum HintStatus
 {

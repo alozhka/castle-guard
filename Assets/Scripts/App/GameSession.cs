@@ -1,3 +1,5 @@
+using CastleGuard.Level.Model;
+using CastleGuard.Model;
 using CastleGuard.Progress;
 using CastleGuard.Progress.Persistence;
 using UnityEngine;

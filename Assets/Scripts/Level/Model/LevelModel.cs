@@ -1,5 +1,7 @@
 using System;
 using CastleGuard.Economy;
+using CastleGuard.Level.Model.Hints;
+using CastleGuard.Level.Model.Rewards;
 
 namespace CastleGuard.Level.Model;
 

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 
-namespace CastleGuard.Level.Generation;
+namespace CastleGuard.Level.Model.Generation;
 
 public sealed class GeneratedLevel
 {

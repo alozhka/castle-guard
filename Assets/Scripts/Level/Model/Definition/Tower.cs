@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace CastleGuard.Level.Model;
+namespace CastleGuard.Level.Model.Definition;
 
 [Serializable]
 public struct Tower

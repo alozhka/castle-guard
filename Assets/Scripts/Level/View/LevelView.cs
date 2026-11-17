@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CastleGuard.App;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 using CastleGuard.Level.ViewModel;
 using UnityEngine;
 using UnityEngine.EventSystems;

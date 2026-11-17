@@ -1,6 +1,6 @@
 using CastleGuard.Economy;
-using CastleGuard.Level;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
 using CastleGuard.Level.ViewModel;
 using NUnit.Framework;
 using UnityEngine;

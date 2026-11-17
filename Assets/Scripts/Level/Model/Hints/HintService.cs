@@ -1,9 +1,8 @@
-using CastleGuard.Economy;
-using CastleGuard.Level.Model;
 using System;
 using System.Collections.Generic;
+using CastleGuard.Economy;
 
-namespace CastleGuard.Level;
+namespace CastleGuard.Level.Model.Hints;
 
 public sealed class HintService
 {

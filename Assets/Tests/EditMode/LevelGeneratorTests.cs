@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using CastleGuard.Level.Generation;
 using CastleGuard.Level.Model;
+using CastleGuard.Level.Model.Definition;
+using CastleGuard.Level.Model.Generation;
 using NUnit.Framework;
 using UnityEngine;
 
