@@ -1,15 +1,15 @@
 using System;
-using CastleGuard.Economy;
+using CastleGuard.Level.Model.Definition;
 using CastleGuard.Level.Model.Hints;
 using CastleGuard.Level.Model.Rewards;
+using CastleGuard.Progress;
 
 namespace CastleGuard.Level.Model;
 
 public sealed class LevelModel : IDisposable
 {
-    private readonly Func<int, LevelAttempt> _createAttempt;
-    private readonly CoinWallet _wallet;
-    private readonly Action<int> _completeLevel;
+    private readonly LevelCatalog _levels;
+    private readonly PlayerProgress _progress;
     private LevelAttempt _attempt;
     private HintService _hintService;
     private int _levelIndex;
@@ -17,6 +17,7 @@ public sealed class LevelModel : IDisposable
 
     public event Action StateChanged;
 
+    public LevelDefinition CurrentLevel { get; private set; }
     public bool CanUndo => _attempt.CanUndo;
     public bool CanRestart => !IsComplete;
     public bool CanBuyHint => _hintService.CanPurchase;
@@ -27,16 +28,14 @@ public sealed class LevelModel : IDisposable
     public int HintPrice { get; }
     public LevelReward? Reward => _attempt.Reward;
 
-    public LevelModel(Func<int, LevelAttempt> createAttempt, CoinWallet wallet,
-        Action<int> completeLevel, int hintPrice, int initialIndex)
+    public LevelModel(LevelCatalog levels, PlayerProgress progress, int hintPrice, int initialIndex)
     {
-        _createAttempt = createAttempt;
-        _wallet = wallet;
-        _completeLevel = completeLevel;
+        _levels = levels;
+        _progress = progress;
         HintPrice = hintPrice;
         _levelIndex = initialIndex;
         StartAttempt();
-        _wallet.BalanceChanged += HandleBalanceChanged;
+        _progress.Wallet.BalanceChanged += HandleBalanceChanged;
     }
 
     public bool IsWallTraversed(int index) => _attempt.IsWallTraversed(index);
@@ -56,8 +55,8 @@ public sealed class LevelModel : IDisposable
         {
             if (_attempt.Reward.HasValue)
             {
-                _wallet.Credit(_attempt.Reward.Value.Total);
-                _completeLevel(_levelIndex + 1);
+                _progress.Wallet.Credit(_attempt.Reward.Value.Total);
+                _progress.CompleteLevel(LevelNumber);
             }
         }
         finally
@@ -119,12 +118,13 @@ public sealed class LevelModel : IDisposable
         StateChanged?.Invoke();
     }
 
-    public void Dispose() => _wallet.BalanceChanged -= HandleBalanceChanged;
+    public void Dispose() => _progress.Wallet.BalanceChanged -= HandleBalanceChanged;
 
     private void StartAttempt()
     {
-        _attempt = _createAttempt(_levelIndex);
-        _hintService = new HintService(_wallet, _attempt, HintPrice);
+        CurrentLevel = _levels.GetLevel(_levelIndex);
+        _attempt = new LevelAttempt(CurrentLevel.StartingTower, CurrentLevel.Walls, CurrentLevel.BaseReward);
+        _hintService = new HintService(_progress.Wallet, _attempt, HintPrice);
         HintedTower = null;
     }
 

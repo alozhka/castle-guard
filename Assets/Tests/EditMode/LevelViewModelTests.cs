@@ -2,6 +2,7 @@ using CastleGuard.Economy;
 using CastleGuard.Level.Model;
 using CastleGuard.Level.Model.Definition;
 using CastleGuard.Level.ViewModel;
+using CastleGuard.Progress;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ public class LevelViewModelTests
 {
     private LevelDefinition _firstLevel;
     private LevelDefinition _nextLevel;
-    private LevelDefinition _currentLevel;
+    private LevelCatalog _levels;
     private CoinWallet _wallet;
     private LevelModel _model;
     private LevelViewModel _viewModel;
@@ -24,15 +25,18 @@ public class LevelViewModelTests
             "{\"startingTower\":\"A\",\"walls\":[{\"from\":\"A\",\"to\":\"B\"},{\"from\":\"B\",\"to\":\"C\"}]}",
             _firstLevel);
         _nextLevel = Object.Instantiate(_firstLevel);
-        _wallet = new CoinWallet(new MemoryPlayerProgressStore { Balance = 5, });
-        _model = new LevelModel(CreateAttempt, _wallet, level => { }, 5, 0);
-        _viewModel = new LevelViewModel(_model, () => _currentLevel);
+        PlayerProgress progress = new(new MemoryPlayerProgressStore { Balance = 5, });
+        _wallet = progress.Wallet;
+        _levels = new LevelCatalog(new[] { _firstLevel, _nextLevel, }, null);
+        _model = new LevelModel(_levels, progress, 5, 0);
+        _viewModel = new LevelViewModel(_model);
     }
 
     [TearDown]
     public void TearDown()
     {
         _model.Dispose();
+        _levels.Dispose();
         Object.DestroyImmediate(_firstLevel);
         Object.DestroyImmediate(_nextLevel);
     }
@@ -133,12 +137,4 @@ public class LevelViewModelTests
         tower.Click();
         Assert.That(tower.IsCurrent, Is.True);
     }
-
-    private LevelAttempt CreateAttempt(int index)
-    {
-        _currentLevel = index == 0 ? _firstLevel : _nextLevel;
-        return new LevelAttempt(_currentLevel.StartingTower,
-            _currentLevel.Walls, _currentLevel.BaseReward);
-    }
-
 }

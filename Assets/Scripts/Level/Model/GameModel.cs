@@ -1,22 +1,18 @@
 using System;
 using CastleGuard.Level.Model.Definition;
-using CastleGuard.Level.Model.Generation;
 using CastleGuard.Model;
 using CastleGuard.Progress;
-using UnityEngine;
 
 namespace CastleGuard.Level.Model;
 
 public sealed class GameModel : IDisposable
 {
-    private readonly LevelGenerator _generator = new();
     private readonly GameSettings _settings;
-    private LevelDefinition _runtimeLevel;
-    private int _currentIndex = -1;
+    private LevelCatalog _levels;
 
     public PlayerProgress Progress { get; }
     public LevelModel Level { get; private set; }
-    public LevelDefinition CurrentLevel { get; private set; }
+    public LevelDefinition CurrentLevel => Level?.CurrentLevel;
 
     public GameModel(GameSettings settings, PlayerProgress progress)
     {
@@ -31,7 +27,8 @@ public sealed class GameModel : IDisposable
         int initialIndex = _settings.GeneratedLevel == null
             ? Math.Min(savedIndex, _settings.Levels.Count - 1)
             : savedIndex;
-        Level = new LevelModel(CreateAttempt, Progress.Wallet, Progress.CompleteLevel,
+        _levels = new LevelCatalog(_settings.Levels, _settings.GeneratedLevel);
+        Level = new LevelModel(_levels, Progress,
             _settings.Economy.HintPrice, initialIndex);
         return Level;
     }
@@ -50,51 +47,7 @@ public sealed class GameModel : IDisposable
     {
         Level?.Dispose();
         Level = null;
-        CurrentLevel = null;
-        _currentIndex = -1;
-        ReleaseGeneratedLevel();
-    }
-
-    private LevelAttempt CreateAttempt(int index)
-    {
-        if (_currentIndex != index)
-        {
-            CurrentLevel = index < _settings.Levels.Count ? _settings.Levels[index] : CreateGeneratedLevel(index);
-            CurrentLevel.ValidateEconomy();
-            _currentIndex = index;
-        }
-
-        return new LevelAttempt(
-            CurrentLevel.StartingTower,
-            CurrentLevel.Walls,
-            CurrentLevel.BaseReward);
-    }
-
-    private LevelDefinition CreateGeneratedLevel(int index)
-    {
-        ReleaseGeneratedLevel();
-        int generatedLevelNumber = index - _settings.Levels.Count + 1;
-        GeneratedLevel data = _generator.Generate($"Уровень {index + 1}", generatedLevelNumber);
-        _runtimeLevel = LevelDefinition.Create(data, _settings.GeneratedLevel.BaseReward);
-        return _runtimeLevel;
-    }
-
-    private void ReleaseGeneratedLevel()
-    {
-        if (_runtimeLevel == null)
-        {
-            return;
-        }
-
-        if (Application.isPlaying)
-        {
-            UnityEngine.Object.Destroy(_runtimeLevel);
-        }
-        else
-        {
-            UnityEngine.Object.DestroyImmediate(_runtimeLevel);
-        }
-
-        _runtimeLevel = null;
+        _levels?.Dispose();
+        _levels = null;
     }
 }

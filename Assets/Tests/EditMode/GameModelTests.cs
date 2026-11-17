@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CastleGuard.Economy;
 using CastleGuard.Level.Model;
 using CastleGuard.Level.Model.Definition;
@@ -92,6 +93,35 @@ public class GameModelTests
         Assert.That(_game.Level, Is.Null);
         Assert.That(_game.CurrentLevel, Is.Null);
         Assert.That(_settings.GeneratedLevel != null, Is.True);
+    }
+
+    [Test]
+    public void NextGeneratedLevel_ReleasesPreviousBoard_AndPublishesNewBoard()
+    {
+        _progress.CompleteLevel(_settings.Levels.Count);
+        LevelModel level = _game.StartLevel();
+        LevelDefinition previous = level.CurrentLevel;
+        Assert.That(RouteSolver.TrySolve(new LevelAttempt(previous.StartingTower,
+            previous.Walls, previous.BaseReward), out IReadOnlyList<Move> route), Is.True);
+        foreach (Move move in route)
+        {
+            level.MoveTo(move.To);
+        }
+
+        int notifications = 0;
+        level.StateChanged += () =>
+        {
+            notifications++;
+            Assert.That(previous == null, Is.True);
+            Assert.That(level.CurrentLevel, Is.SameAs(_game.CurrentLevel));
+            Assert.That(level.CurrentLevel.name, Is.EqualTo($"Уровень {_settings.Levels.Count + 2}"));
+            Assert.That(level.CurrentTower, Is.EqualTo(level.CurrentLevel.StartingTower));
+            Assert.That(level.Reward, Is.Null);
+        };
+
+        level.NextLevel();
+
+        Assert.That(notifications, Is.EqualTo(1));
     }
 
     [Test]

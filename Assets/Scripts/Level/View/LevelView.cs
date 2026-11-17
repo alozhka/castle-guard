@@ -42,7 +42,7 @@ namespace CastleGuard.Level.View
         {
             _game = GameSession.Model;
             _model = _game.StartLevel();
-            Initialize(new LevelViewModel(_model, () => _game.CurrentLevel));
+            Initialize(new LevelViewModel(_model));
         }
 
         private void OnDestroy()
