@@ -20,20 +20,27 @@ public class LevelGeneratorTests
     public void Generate_ManyNames_ProducesPlayablePlanarLevels(int generatedLevelNumber, int towers, int walls)
     {
         LevelGenerator generator = new();
-        int ordinaryCount = 0;
+        int generatedCount = 0;
         for (int seed = 0; seed < 300; seed++)
         {
-            GeneratedLevel level = generator.Generate("Уровень " + seed.ToString(CultureInfo.InvariantCulture), generatedLevelNumber);
+            GeneratedLevel level;
+            try
+            {
+                level = generator.Generate("Уровень " + seed.ToString(CultureInfo.InvariantCulture), generatedLevelNumber);
+            }
+            catch (InvalidOperationException exception)
+            {
+                Assert.That(exception.Message, Is.EqualTo("Failed to generate a level after 128 attempts."));
+                continue;
+            }
+
             Assert.That(level.Towers.Count, Is.EqualTo(towers), level.Name);
             Assert.That(level.Walls.Count, Is.EqualTo(walls), level.Name);
             Validate(level);
-            if (!level.IsFallback)
-            {
-                ordinaryCount++;
-            }
+            generatedCount++;
         }
 
-        Assert.That(ordinaryCount, Is.GreaterThan(270), "Generation should normally succeed before the reserve is used.");
+        Assert.That(generatedCount, Is.GreaterThan(270), "Generation should normally succeed within the attempt limit.");
     }
 
     [TestCase(1)]
@@ -59,20 +66,18 @@ public class LevelGeneratorTests
         }
     }
 
-    [TestCase(1, 5, 6)]
-    [TestCase(6, 6, 8)]
-    [TestCase(11, 7, 10)]
-    [TestCase(16, 8, 12)]
-    [TestCase(21, 9, 14)]
-    public void Generate_ExhaustedAttempts_ReturnsRepeatablePlayableReserve(int generatedLevelNumber, int towers, int walls)
+    [TestCase(1)]
+    [TestCase(6)]
+    [TestCase(11)]
+    [TestCase(16)]
+    [TestCase(21)]
+    public void Generate_ExhaustedAttempts_Throws(int generatedLevelNumber)
     {
         LevelGenerator generator = new(0);
-        GeneratedLevel first = generator.Generate("reserve", generatedLevelNumber);
-        Assert.That(first.IsFallback, Is.True);
-        Assert.That(first.Towers.Count, Is.EqualTo(towers));
-        Assert.That(first.Walls.Count, Is.EqualTo(walls));
-        Validate(first);
-        AssertSame(first, generator.Generate("reserve", generatedLevelNumber));
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            () => generator.Generate("Level", generatedLevelNumber));
+
+        Assert.That(exception.Message, Is.EqualTo("Failed to generate a level after 0 attempts."));
     }
 
     [Test]
@@ -107,7 +112,7 @@ public class LevelGeneratorTests
     {
         GeneratedLevel level = new LevelGenerator().Generate("hello");
         Assert.That(level.Seed, Is.EqualTo(0x4f9f2cabu));
-        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.2.0"));
+        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.3.0"));
     }
 
     [TestCase(null)]
@@ -121,7 +126,6 @@ public class LevelGeneratorTests
     {
         Assert.That(second.Seed, Is.EqualTo(first.Seed));
         Assert.That(GeneratedLevel.Version, Is.EqualTo(GeneratedLevel.Version));
-        Assert.That(second.IsFallback, Is.EqualTo(first.IsFallback));
         Assert.That(second.StartingTower, Is.EqualTo(first.StartingTower));
         Assert.That(second.Towers, Is.EqualTo(first.Towers));
         Assert.That(second.Walls, Is.EqualTo(first.Walls));

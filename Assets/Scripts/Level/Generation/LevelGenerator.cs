@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using CastleGuard.Level.Model;
 using UnityEngine;
+using Random = System.Random;
 
 namespace CastleGuard.Level.Generation;
 
 public sealed class LevelGenerator
 {
-    public const string Version = "0.2.0";
+    public const string Version = "0.3.0";
     private const int MaximumAttempts = 128;
     private const int LevelsPerStage = 5;
     private const int MaximumStage = 4;
@@ -26,21 +27,13 @@ public sealed class LevelGenerator
 
     public GeneratedLevel Generate(string name, int generatedLevelNumber = 1)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentException("A level name is required.", nameof(name));
-        }
-
-        if (generatedLevelNumber < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(generatedLevelNumber));
-        }
+        EnsureValid(name, generatedLevelNumber);
 
         int stage = Math.Min((generatedLevelNumber - 1) / LevelsPerStage, MaximumStage);
         int towerCount = 5 + stage;
         int wallCount = 6 + stage * 2;
         uint seed = Hash(name);
-        RandomSource random = new(seed);
+        Random random = new(unchecked((int)seed));
         for (int attempt = 0; attempt < _attemptLimit; attempt++)
         {
             Vector2Int[] positions = PlaceTowers(towerCount, random);
@@ -50,19 +43,17 @@ public sealed class LevelGenerator
                 continue;
             }
 
-            GeneratedLevel result = CreateResult(name, seed, false, positions, edges, random);
+            GeneratedLevel result = CreateResult(name, seed, positions, edges, random);
             if (result != null)
             {
                 return result;
             }
         }
 
-        (Vector2Int[] reserve, List<Edge> reserveEdges) = CreateReserve(towerCount);
-        return CreateResult(name, seed, true, reserve, reserveEdges, random)
-               ?? throw new InvalidOperationException("The reserve level must be solvable.");
+        throw new InvalidOperationException($"Failed to generate a level after {_attemptLimit} attempts.");
     }
 
-    private static Vector2Int[] PlaceTowers(int count, RandomSource random)
+    private static Vector2Int[] PlaceTowers(int count, Random random)
     {
         List<Vector2Int> grid = new(25);
         for (int x = -2; x <= 2; x++)
@@ -77,18 +68,35 @@ public sealed class LevelGenerator
         return grid.GetRange(0, count).ToArray();
     }
 
-    private static List<Edge> BuildGraph(Vector2Int[] positions, int target, RandomSource random)
+    private static List<Edge> BuildGraph(Vector2Int[] positions, int target, Random random)
+    {
+        List<Edge> candidates = CreateShuffledEdgeCandidates(positions.Length, random);
+        List<Edge> edges = ConnectTowers(positions, candidates);
+        if (edges.Count == positions.Length - 1)
+        {
+            AddRemainingWalls(positions, candidates, edges, target);
+        }
+
+        return edges;
+    }
+
+    private static List<Edge> CreateShuffledEdgeCandidates(int towerCount, Random random)
     {
         List<Edge> candidates = new();
-        for (int from = 0; from < positions.Length; from++)
+        for (int from = 0; from < towerCount; from++)
         {
-            for (int to = from + 1; to < positions.Length; to++)
+            for (int to = from + 1; to < towerCount; to++)
             {
                 candidates.Add(new Edge(from, to));
             }
         }
 
         Shuffle(candidates, random);
+        return candidates;
+    }
+
+    private static List<Edge> ConnectTowers(Vector2Int[] positions, List<Edge> candidates)
+    {
         List<Edge> edges = new();
         int[] components = new int[positions.Length];
         for (int i = 0; i < components.Length; i++)
@@ -96,7 +104,6 @@ public sealed class LevelGenerator
             components[i] = i;
         }
 
-        // Join components first; every accepted edge preserves the geometry.
         foreach (Edge edge in candidates)
         {
             if (components[edge.From] == components[edge.To] || !CanAdd(edge, positions, edges))
@@ -117,11 +124,11 @@ public sealed class LevelGenerator
             edges.Add(edge);
         }
 
-        if (edges.Count != positions.Length - 1)
-        {
-            return edges;
-        }
+        return edges;
+    }
 
+    private static void AddRemainingWalls(Vector2Int[] positions, List<Edge> candidates, List<Edge> edges, int target)
+    {
         foreach (Edge edge in candidates)
         {
             if (edges.Count == target)
@@ -134,52 +141,27 @@ public sealed class LevelGenerator
                 edges.Add(edge);
             }
         }
-
-        return edges;
-    }
-
-    private static (Vector2Int[], List<Edge>) CreateReserve(int towerCount)
-    {
-        // Each template is planar and has an Euler route and the stage's exact size.
-        return towerCount switch
-        {
-            5 => (
-                new Vector2Int[] { new(2, -2), new(-2, 1), new(-2, -2), new(2, 1), new(-1, 1), },
-                new List<Edge> { new(2, 4), new(0, 2), new(2, 3), new(1, 4), new(1, 2), new(0, 3), }
-            ),
-            6 => (
-                new Vector2Int[] { new(2, 0), new(1, -2), new(-1, 2), new(-1, -1), new(-2, 1), new(0, 0), },
-                new List<Edge> { new(1, 5), new(2, 3), new(1, 3), new(2, 4), new(0, 2), new(2, 5), new(0, 5), new(3, 5), }
-            ),
-            7 => (
-                new Vector2Int[] { new(-1, 2), new(-2, 2), new(2, 2), new(-1, 0), new(-2, -1), new(0, -1), new(0, 0), },
-                new List<Edge>
-                {
-                    new(2, 3), new(3, 6), new(1, 4), new(3, 5), new(3, 4),
-                    new(0, 3), new(1, 3), new(2, 6), new(5, 6), new(0, 2),
-                }
-            ),
-            8 => (
-                new Vector2Int[] { new(2, -2), new(-2, 1), new(0, 1), new(-2, -2), new(1, 1), new(2, 2), new(-2, 0), new(1, -1), },
-                new List<Edge>
-                {
-                    new(3, 4), new(0, 7), new(2, 6), new(0, 3), new(1, 6), new(2, 4),
-                    new(4, 5), new(4, 7), new(3, 7), new(1, 2), new(3, 6), new(5, 7),
-                }
-            ),
-            9 => (
-                new Vector2Int[] { new(-1, 2), new(-2, 0), new(-1, 0), new(0, -1), new(-1, -1), new(-2, -1), new(-2, 1), new(-2, -2), new(1, 2), },
-                new List<Edge>
-                {
-                    new(1, 4), new(4, 7), new(5, 7), new(0, 8), new(0, 3), new(2, 3), new(0, 6),
-                    new(3, 4), new(1, 5), new(3, 8), new(2, 6), new(1, 6), new(1, 2), new(0, 2),
-                }
-            ),
-            _ => throw new ArgumentOutOfRangeException(nameof(towerCount)),
-        };
     }
 
     private static bool CanAdd(Edge edge, Vector2Int[] positions, List<Edge> edges)
+    {
+        if (!HasTowerClearance(edge, positions))
+        {
+            return false;
+        }
+
+        foreach (Edge existing in edges)
+        {
+            if (WallsConflict(edge, existing, positions))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasTowerClearance(Edge edge, Vector2Int[] positions)
     {
         Vector2Int a = positions[edge.From];
         Vector2Int b = positions[edge.To];
@@ -195,34 +177,40 @@ public sealed class LevelGenerator
             Vector2Int offset = positions[i] - a;
             int projection = Dot(offset, direction);
             int cross = Cross(direction, offset);
-            // Keep half a grid cell free around every unrelated tower.
+
             if (projection > 0 && projection < lengthSquared && 4 * cross * cross <= lengthSquared)
             {
                 return false;
             }
         }
 
-        foreach (Edge existing in edges)
+        return true;
+    }
+
+    private static bool WallsConflict(Edge edge, Edge existing, Vector2Int[] positions)
+    {
+        int? shared = null;
+        if (edge.From == existing.From || edge.From == existing.To)
         {
-            int shared = edge.From == existing.From || edge.From == existing.To ? edge.From
-                : edge.To == existing.From || edge.To == existing.To ? edge.To : -1;
-            if (shared >= 0)
+            shared = edge.From;
+        }
+        else
+        {
+            if (edge.To == existing.From || edge.To == existing.To)
             {
-                Vector2Int origin = positions[shared];
-                Vector2Int first = positions[edge.From == shared ? edge.To : edge.From] - origin;
-                Vector2Int second = positions[existing.From == shared ? existing.To : existing.From] - origin;
-                if (Cross(first, second) == 0 && Dot(first, second) > 0)
-                {
-                    return false;
-                }
-            }
-            else if (Intersects(a, b, positions[existing.From], positions[existing.To]))
-            {
-                return false;
+                shared = edge.To;
             }
         }
 
-        return true;
+        if (shared.HasValue)
+        {
+            Vector2Int origin = positions[shared.Value];
+            Vector2Int first = positions[edge.From == shared ? edge.To : edge.From] - origin;
+            Vector2Int second = positions[existing.From == shared ? existing.To : existing.From] - origin;
+            return Cross(first, second) == 0 && Dot(first, second) > 0;
+        }
+
+        return Intersects(positions[edge.From], positions[edge.To], positions[existing.From], positions[existing.To]);
     }
 
     private static bool Intersects(Vector2Int a, Vector2Int b, Vector2Int c, Vector2Int d)
@@ -241,25 +229,37 @@ public sealed class LevelGenerator
     private static GeneratedLevel CreateResult(
         string name,
         uint seed,
-        bool fallback,
         Vector2Int[] positions,
         List<Edge> edges,
-        RandomSource random
+        Random random
     )
     {
-        int[] degrees = new int[positions.Length];
-        foreach (Edge edge in edges)
+        if (!TryChooseStartingTower(positions.Length, edges, random, out int start))
         {
-            degrees[edge.From]++;
-            degrees[edge.To]++;
+            return null;
         }
 
+        LevelDefinition.Tower[] towers = CreateTowers(positions);
+        LevelDefinition.Wall[] walls = CreateWalls(edges, out List<Wall> connections);
+        LevelAttempt attempt = new(TowerId(start), connections, 10);
+        if (!RouteSolver.TrySolve(attempt, out IReadOnlyList<Move> route) || route.Count != edges.Count)
+        {
+            return null;
+        }
+
+        return new GeneratedLevel(name, seed, towers, walls, TowerId(start), route);
+    }
+
+    private static bool TryChooseStartingTower(int towerCount, List<Edge> edges, Random random, out int start)
+    {
+        start = -1;
+        int[] degrees = CountTowerDegrees(towerCount, edges);
         List<int> odd = new();
         for (int i = 0; i < degrees.Length; i++)
         {
             if (degrees[i] == 0)
             {
-                return null;
+                return false;
             }
 
             if (degrees[i] % 2 != 0)
@@ -270,10 +270,27 @@ public sealed class LevelGenerator
 
         if (odd.Count != 0 && odd.Count != 2)
         {
-            return null;
+            return false;
         }
 
-        int start = odd.Count == 2 ? odd[random.Next(2)] : random.Next(positions.Length);
+        start = odd.Count == 2 ? odd[random.Next(2)] : random.Next(towerCount);
+        return true;
+    }
+
+    private static int[] CountTowerDegrees(int towerCount, List<Edge> edges)
+    {
+        int[] degrees = new int[towerCount];
+        foreach (Edge edge in edges)
+        {
+            degrees[edge.From]++;
+            degrees[edge.To]++;
+        }
+
+        return degrees;
+    }
+
+    private static LevelDefinition.Tower[] CreateTowers(Vector2Int[] positions)
+    {
         LevelDefinition.Tower[] towers = new LevelDefinition.Tower[positions.Length];
         for (int i = 0; i < towers.Length; i++)
         {
@@ -284,8 +301,13 @@ public sealed class LevelGenerator
             };
         }
 
+        return towers;
+    }
+
+    private static LevelDefinition.Wall[] CreateWalls(List<Edge> edges, out List<Wall> connections)
+    {
         LevelDefinition.Wall[] walls = new LevelDefinition.Wall[edges.Count];
-        List<Wall> connections = new(edges.Count);
+        connections = new List<Wall>(edges.Count);
         for (int i = 0; i < walls.Length; i++)
         {
             Edge edge = edges[i];
@@ -293,13 +315,7 @@ public sealed class LevelGenerator
             connections.Add(new Wall(walls[i].from, walls[i].to));
         }
 
-        LevelAttempt attempt = new(TowerId(start), connections, 10);
-        if (!RouteSolver.TrySolve(attempt, out IReadOnlyList<Move> route) || route.Count != edges.Count)
-        {
-            return null;
-        }
-
-        return new GeneratedLevel(name, seed, fallback, towers, walls, TowerId(start), route);
+        return walls;
     }
 
     private static string TowerId(int index) => ((char)('A' + index)).ToString();
@@ -315,7 +331,7 @@ public sealed class LevelGenerator
         return hash;
     }
 
-    private static void Shuffle<T>(List<T> items, RandomSource random)
+    private static void Shuffle<T>(List<T> items, Random random)
     {
         for (int i = items.Count - 1; i > 0; i--)
         {
@@ -324,7 +340,20 @@ public sealed class LevelGenerator
         }
     }
 
-    private readonly struct Edge
+    private static void EnsureValid(string name, int generatedLevelNumber)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentException("A level name is required.", nameof(name));
+        }
+
+        if (generatedLevelNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(generatedLevelNumber));
+        }
+    }
+
+    private readonly record struct Edge
     {
         public int From { get; }
         public int To { get; }
@@ -333,24 +362,6 @@ public sealed class LevelGenerator
         {
             From = from;
             To = to;
-        }
-    }
-
-    private sealed class RandomSource
-    {
-        private uint _state;
-
-        public RandomSource(uint seed)
-        {
-            _state = seed == 0 ? 0x6D2B79F5u : seed;
-        }
-
-        public int Next(int exclusiveMaximum)
-        {
-            _state ^= _state << 13;
-            _state ^= _state >> 17;
-            _state ^= _state << 5;
-            return (int)(_state % (uint)exclusiveMaximum);
         }
     }
 }
