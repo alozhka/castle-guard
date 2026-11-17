@@ -21,7 +21,7 @@ public class LevelDefinitionTests
         Assert.DoesNotThrow(level.ValidateEconomy);
         Assert.That(level.BaseReward, Is.EqualTo(10));
 
-        string[] towerIds = level.Towers.Select(tower => tower.id).ToArray();
+        string[] towerIds = level.Towers.Select(tower => tower.Id).ToArray();
         Assert.That(towerIds, Is.Unique);
         foreach (Wall wall in level.Walls)
         {
@@ -42,6 +42,30 @@ public class LevelDefinitionTests
         for (int i = 0; i < level.Walls.Count; i++)
         {
             Assert.That(run.IsWallTraversed(i), Is.True);
+        }
+    }
+
+    [Test]
+    public void Towers_InspectorEditing_UpdatesIdAndPosition()
+    {
+        LevelDefinition level = ScriptableObject.CreateInstance<LevelDefinition>();
+        try
+        {
+            SerializedObject serializedLevel = new(level);
+            SerializedProperty towers = serializedLevel.FindProperty("towers");
+            towers.arraySize = 1;
+            SerializedProperty tower = towers.GetArrayElementAtIndex(0);
+            tower.FindPropertyRelative("id").stringValue = "A";
+            tower.FindPropertyRelative("position").vector2Value = new Vector2(1.5f, -2f);
+            serializedLevel.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.That(level.Towers.Count, Is.EqualTo(1));
+            Assert.That(level.Towers[0].Id, Is.EqualTo("A"));
+            Assert.That(level.Towers[0].Position, Is.EqualTo(new Vector2(1.5f, -2f)));
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(level);
         }
     }
 

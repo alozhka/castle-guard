@@ -10,7 +10,7 @@ public sealed class GeneratedLevel
 
     public string Name { get; }
     public uint Seed { get; }
-    public IReadOnlyList<LevelDefinition.Tower> Towers { get; }
+    public IReadOnlyList<Tower> Towers { get; }
     public IReadOnlyList<Wall> Walls { get; }
     public string StartingTower { get; }
     public IReadOnlyList<Move> Route { get; }
@@ -18,7 +18,7 @@ public sealed class GeneratedLevel
     internal GeneratedLevel(
         string name,
         uint seed,
-        LevelDefinition.Tower[] towers,
+        Tower[] towers,
         Wall[] walls,
         string startingTower,
         IReadOnlyList<Move> route)

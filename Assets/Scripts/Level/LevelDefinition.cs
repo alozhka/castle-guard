@@ -10,13 +10,6 @@ namespace CastleGuard.Level
     [CreateAssetMenu(menuName = "Castle Guard/Level")]
     public class LevelDefinition : ScriptableObject
     {
-        [Serializable]
-        public struct Tower
-        {
-            public string id;
-            public Vector2 position;
-        }
-
         [SerializeField, Min(0)] private int baseReward = 10;
         [SerializeField] private Tower[] towers;
         [SerializeField] private Wall[] walls;

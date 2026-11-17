@@ -239,7 +239,7 @@ public sealed class LevelGenerator
             return null;
         }
 
-        LevelDefinition.Tower[] towers = CreateTowers(positions);
+        Tower[] towers = CreateTowers(positions);
         Wall[] walls = CreateWalls(edges);
         LevelAttempt attempt = new(TowerId(start), walls, 10);
         if (!RouteSolver.TrySolve(attempt, out IReadOnlyList<Move> route) || route.Count != edges.Count)
@@ -289,16 +289,12 @@ public sealed class LevelGenerator
         return degrees;
     }
 
-    private static LevelDefinition.Tower[] CreateTowers(Vector2Int[] positions)
+    private static Tower[] CreateTowers(Vector2Int[] positions)
     {
-        LevelDefinition.Tower[] towers = new LevelDefinition.Tower[positions.Length];
+        Tower[] towers = new Tower[positions.Length];
         for (int i = 0; i < towers.Length; i++)
         {
-            towers[i] = new LevelDefinition.Tower
-            {
-                id = TowerId(i),
-                position = new Vector2(positions[i].x * 0.9f, positions[i].y * 0.9f),
-            };
+            towers[i] = new Tower(TowerId(i), new Vector2(positions[i].x * 0.9f, positions[i].y * 0.9f));
         }
 
         return towers;

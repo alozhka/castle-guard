@@ -128,13 +128,13 @@ namespace CastleGuard.Level.View
             _towers.Clear();
             _walls.Clear();
 
-            foreach (LevelDefinition.Tower definition in level.Towers)
+            foreach (Tower definition in level.Towers)
             {
                 TowerView tower = Instantiate(towerPrefab, transform);
-                tower.name = $"Tower_{definition.id}";
-                tower.transform.localPosition = definition.position;
-                tower.Initialize(_viewModel.CreateTower(definition.id), SampleClock);
-                _towers.Add(definition.id, tower);
+                tower.name = $"Tower_{definition.Id}";
+                tower.transform.localPosition = definition.Position;
+                tower.Initialize(_viewModel.CreateTower(definition.Id), SampleClock);
+                _towers.Add(definition.Id, tower);
             }
 
             foreach (Wall definition in level.Walls)

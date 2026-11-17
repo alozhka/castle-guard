@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using CastleGuard.Level;
 using CastleGuard.Level.Generation;
 using CastleGuard.Level.Model;
 using NUnit.Framework;
@@ -136,7 +135,7 @@ public class LevelGeneratorTests
     {
         Assert.That(level.Towers.Count, Is.InRange(2, 10), level.Name);
         Assert.That(level.Walls.Count, Is.InRange(level.Towers.Count - 1, 14), level.Name);
-        Dictionary<string, Vector2> positions = level.Towers.ToDictionary(tower => tower.id, tower => tower.position);
+        Dictionary<string, Vector2> positions = level.Towers.ToDictionary(tower => tower.Id, tower => tower.Position);
         HashSet<string> pairs = new();
         foreach (Wall wall in level.Walls)
         {
@@ -182,12 +181,12 @@ public class LevelGeneratorTests
             }
         }
 
-        foreach (LevelDefinition.Tower tower in level.Towers)
+        foreach (Tower tower in level.Towers)
         {
-            Assert.That(level.Walls.Any(wall => wall.From == tower.id || wall.To == tower.id), Is.True);
-            foreach (LevelDefinition.Tower other in level.Towers.Where(other => other.id != tower.id))
+            Assert.That(level.Walls.Any(wall => wall.From == tower.Id || wall.To == tower.Id), Is.True);
+            foreach (Tower other in level.Towers.Where(other => other.Id != tower.Id))
             {
-                Assert.That(Vector2.Distance(tower.position, other.position), Is.GreaterThan(0.899f));
+                Assert.That(Vector2.Distance(tower.Position, other.Position), Is.GreaterThan(0.899f));
             }
         }
 
