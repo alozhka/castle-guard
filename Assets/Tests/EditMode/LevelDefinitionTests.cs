@@ -29,19 +29,19 @@ public class LevelDefinitionTests
             Assert.That(towerIds, Does.Contain(wall.To));
         }
 
-        LevelRun run = new(level.StartingTower, level.Walls);
-        Assert.That(run.CurrentTower, Is.EqualTo(route[0].ToString()));
+        LevelAttempt attempt = new(level.StartingTower, level.Walls, level.BaseReward);
+        Assert.That(attempt.CurrentTower, Is.EqualTo(route[0].ToString()));
         Assert.That(route.Length - 1, Is.EqualTo(level.Walls.Count));
 
         for (int i = 1; i < route.Length; i++)
         {
-            Assert.That(run.TryMove(route[i].ToString()), Is.True, $"Move {i} in {assetName}");
-            Assert.That(run.IsComplete, Is.EqualTo(i == route.Length - 1));
+            Assert.That(attempt.TryMove(route[i].ToString()), Is.True, $"Move {i} in {assetName}");
+            Assert.That(attempt.IsComplete, Is.EqualTo(i == route.Length - 1));
         }
 
         for (int i = 0; i < level.Walls.Count; i++)
         {
-            Assert.That(run.IsWallTraversed(i), Is.True);
+            Assert.That(attempt.IsWallTraversed(i), Is.True);
         }
     }
 

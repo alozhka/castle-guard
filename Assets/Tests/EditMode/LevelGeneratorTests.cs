@@ -191,21 +191,21 @@ public class LevelGeneratorTests
             }
         }
 
-        LevelRun run = new(level.StartingTower, level.Walls);
+        LevelAttempt attempt = new(level.StartingTower, level.Walls, 10);
         HashSet<int> traversed = new();
         HashSet<string> visited = new() { level.StartingTower, };
         foreach (Move move in level.Route)
         {
-            Assert.That(move.From, Is.EqualTo(run.CurrentTower));
+            Assert.That(move.From, Is.EqualTo(attempt.CurrentTower));
             Assert.That(traversed.Add(move.WallIndex), Is.True);
-            Assert.That(run.TryMove(move.To), Is.True);
-            Assert.That(run.IsWallTraversed(move.WallIndex), Is.True);
+            Assert.That(attempt.TryMove(move.To), Is.True);
+            Assert.That(attempt.IsWallTraversed(move.WallIndex), Is.True);
             visited.Add(move.To);
         }
 
         Assert.That(traversed.Count, Is.EqualTo(level.Walls.Count));
         Assert.That(visited.Count, Is.EqualTo(level.Towers.Count));
-        Assert.That(run.IsComplete, Is.True);
+        Assert.That(attempt.IsComplete, Is.True);
     }
 
     private static float Cross(Vector2 a, Vector2 b) => a.x * b.y - a.y * b.x;

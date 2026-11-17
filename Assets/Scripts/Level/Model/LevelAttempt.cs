@@ -6,14 +6,16 @@ namespace CastleGuard.Level.Model;
 
 public sealed class LevelAttempt
 {
-    private readonly LevelRun _run;
+    private readonly List<Wall> _walls;
+    private readonly HashSet<int> _traversedWalls = new();
+    private readonly List<Move> _history = new();
     private readonly int _baseReward;
     private bool _hintLocked;
 
-    public string CurrentTower => _run.CurrentTower;
-    public IReadOnlyList<Move> History => _run.History;
-    public IReadOnlyList<Wall> Walls => _run.Walls;
-    public bool CanUndo => !IsComplete && _run.CanUndo;
+    public string CurrentTower { get; private set; }
+    public IReadOnlyList<Move> History { get; }
+    public IReadOnlyList<Wall> Walls { get; }
+    public bool CanUndo => !IsComplete && _history.Count > 0;
     public bool IsComplete => Reward.HasValue;
     public bool CanUseHint => !IsComplete && !_hintLocked;
 
@@ -26,7 +28,10 @@ public sealed class LevelAttempt
     {
         LevelRewardCalculator.ValidateBaseReward(baseReward);
         _baseReward = baseReward;
-        _run = new LevelRun(startingTower, walls);
+        CurrentTower = startingTower;
+        _walls = new List<Wall>(walls);
+        Walls = _walls.AsReadOnly();
+        History = _history.AsReadOnly();
         CompleteIfFinished();
     }
 
@@ -46,7 +51,7 @@ public sealed class LevelAttempt
 
     public bool TryMove(string destination)
     {
-        if (IsComplete || !_run.TryMove(destination))
+        if (IsComplete || !TryTraverseWall(destination))
         {
             return false;
         }
@@ -58,11 +63,15 @@ public sealed class LevelAttempt
 
     public bool TryUndo()
     {
-        if (IsComplete || !_run.TryUndo())
+        if (!CanUndo)
         {
             return false;
         }
 
+        Move move = _history[^1];
+        _history.RemoveAt(_history.Count - 1);
+        _traversedWalls.Remove(move.WallIndex);
+        CurrentTower = move.From;
         UsedUndo = true;
         return true;
     }
@@ -81,12 +90,36 @@ public sealed class LevelAttempt
 
     public bool IsWallTraversed(int wallIndex)
     {
-        return _run.IsWallTraversed(wallIndex);
+        return _traversedWalls.Contains(wallIndex);
+    }
+
+    private bool TryTraverseWall(string destination)
+    {
+        if (destination == CurrentTower)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < _walls.Count; i++)
+        {
+            Wall wall = _walls[i];
+            if (!wall.Connects(CurrentTower, destination) || _traversedWalls.Contains(i))
+            {
+                continue;
+            }
+
+            _history.Add(new Move(CurrentTower, destination, i));
+            _traversedWalls.Add(i);
+            CurrentTower = destination;
+            return true;
+        }
+
+        return false;
     }
 
     private void CompleteIfFinished()
     {
-        if (_run.IsComplete)
+        if (_traversedWalls.Count == _walls.Count)
         {
             Reward = LevelRewardCalculator.Calculate(_baseReward, ElapsedSeconds, UsedUndo, UsedHint);
         }
