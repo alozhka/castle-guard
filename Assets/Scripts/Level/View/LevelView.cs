@@ -137,11 +137,11 @@ namespace CastleGuard.Level.View
                 _towers.Add(definition.id, tower);
             }
 
-            foreach (LevelDefinition.Wall definition in level.Walls)
+            foreach (Wall definition in level.Walls)
             {
                 WallView wall = Instantiate(wallPrefab, transform);
-                wall.name = $"Wall_{definition.from}_{definition.to}";
-                wall.SetEndpoints(_towers[definition.from], _towers[definition.to]);
+                wall.name = $"Wall_{definition.From}_{definition.To}";
+                wall.SetEndpoints(_towers[definition.From], _towers[definition.To]);
                 _walls.Add(wall);
             }
 

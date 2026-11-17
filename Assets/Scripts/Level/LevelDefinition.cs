@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CastleGuard.Level.Generation;
+using CastleGuard.Level.Model;
 using UnityEngine;
 
 namespace CastleGuard.Level
@@ -14,13 +15,6 @@ namespace CastleGuard.Level
         {
             public string id;
             public Vector2 position;
-        }
-
-        [Serializable]
-        public struct Wall
-        {
-            public string from;
-            public string to;
         }
 
         [SerializeField, Min(0)] private int baseReward = 10;
@@ -46,6 +40,11 @@ namespace CastleGuard.Level
 
         public void ValidateEconomy()
         {
+            if (baseReward < 0)
+            {
+                throw new InvalidOperationException("Base level reward cannot be negative.");
+            }
+
             long maximumReward = (long)baseReward * 2;
             if (maximumReward > int.MaxValue)
             {

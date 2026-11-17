@@ -23,16 +23,15 @@ public class LevelDefinitionTests
 
         string[] towerIds = level.Towers.Select(tower => tower.id).ToArray();
         Assert.That(towerIds, Is.Unique);
-        foreach (LevelDefinition.Wall wall in level.Walls)
+        foreach (Wall wall in level.Walls)
         {
-            Assert.That(towerIds, Does.Contain(wall.from));
-            Assert.That(towerIds, Does.Contain(wall.to));
+            Assert.That(towerIds, Does.Contain(wall.From));
+            Assert.That(towerIds, Does.Contain(wall.To));
         }
 
-        Wall[] walls = level.Walls.Select(wall => new Wall(wall.from, wall.to)).ToArray();
-        LevelRun run = new(level.StartingTower, walls);
+        LevelRun run = new(level.StartingTower, level.Walls);
         Assert.That(run.CurrentTower, Is.EqualTo(route[0].ToString()));
-        Assert.That(route.Length - 1, Is.EqualTo(walls.Length));
+        Assert.That(route.Length - 1, Is.EqualTo(level.Walls.Count));
 
         for (int i = 1; i < route.Length; i++)
         {
@@ -40,9 +39,34 @@ public class LevelDefinitionTests
             Assert.That(run.IsComplete, Is.EqualTo(i == route.Length - 1));
         }
 
-        for (int i = 0; i < walls.Length; i++)
+        for (int i = 0; i < level.Walls.Count; i++)
         {
             Assert.That(run.IsWallTraversed(i), Is.True);
+        }
+    }
+
+    [Test]
+    public void Walls_InspectorEditing_UpdatesEndpoints()
+    {
+        LevelDefinition level = ScriptableObject.CreateInstance<LevelDefinition>();
+        try
+        {
+            SerializedObject serializedLevel = new(level);
+            SerializedProperty walls = serializedLevel.FindProperty("walls");
+            walls.arraySize = 1;
+            SerializedProperty wall = walls.GetArrayElementAtIndex(0);
+            wall.FindPropertyRelative("from").stringValue = "A";
+            wall.FindPropertyRelative("to").stringValue = "B";
+            serializedLevel.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.That(level.Walls.Count, Is.EqualTo(1));
+            Assert.That(level.Walls[0].From, Is.EqualTo("A"));
+            Assert.That(level.Walls[0].To, Is.EqualTo("B"));
+            Assert.That(level.Walls[0].Connects("B", "A"), Is.True);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(level);
         }
     }
 

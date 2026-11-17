@@ -240,8 +240,8 @@ public sealed class LevelGenerator
         }
 
         LevelDefinition.Tower[] towers = CreateTowers(positions);
-        LevelDefinition.Wall[] walls = CreateWalls(edges, out List<Wall> connections);
-        LevelAttempt attempt = new(TowerId(start), connections, 10);
+        Wall[] walls = CreateWalls(edges);
+        LevelAttempt attempt = new(TowerId(start), walls, 10);
         if (!RouteSolver.TrySolve(attempt, out IReadOnlyList<Move> route) || route.Count != edges.Count)
         {
             return null;
@@ -304,15 +304,13 @@ public sealed class LevelGenerator
         return towers;
     }
 
-    private static LevelDefinition.Wall[] CreateWalls(List<Edge> edges, out List<Wall> connections)
+    private static Wall[] CreateWalls(List<Edge> edges)
     {
-        LevelDefinition.Wall[] walls = new LevelDefinition.Wall[edges.Count];
-        connections = new List<Wall>(edges.Count);
+        Wall[] walls = new Wall[edges.Count];
         for (int i = 0; i < walls.Length; i++)
         {
             Edge edge = edges[i];
-            walls[i] = new LevelDefinition.Wall { from = TowerId(edge.From), to = TowerId(edge.To), };
-            connections.Add(new Wall(walls[i].from, walls[i].to));
+            walls[i] = new Wall(TowerId(edge.From), TowerId(edge.To));
         }
 
         return walls;

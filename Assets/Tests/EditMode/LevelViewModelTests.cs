@@ -1,4 +1,3 @@
-using System.Linq;
 using CastleGuard.Economy;
 using CastleGuard.Level;
 using CastleGuard.Level.Model;
@@ -139,7 +138,7 @@ public class LevelViewModelTests
     {
         _currentLevel = index == 0 ? _firstLevel : _nextLevel;
         return new LevelAttempt(_currentLevel.StartingTower,
-            _currentLevel.Walls.Select(wall => new Wall(wall.from, wall.to)), _currentLevel.BaseReward);
+            _currentLevel.Walls, _currentLevel.BaseReward);
     }
 
 }

@@ -138,17 +138,17 @@ public class LevelGeneratorTests
         Assert.That(level.Walls.Count, Is.InRange(level.Towers.Count - 1, 14), level.Name);
         Dictionary<string, Vector2> positions = level.Towers.ToDictionary(tower => tower.id, tower => tower.position);
         HashSet<string> pairs = new();
-        foreach (LevelDefinition.Wall wall in level.Walls)
+        foreach (Wall wall in level.Walls)
         {
-            Assert.That(wall.from, Is.Not.EqualTo(wall.to));
-            string key = string.CompareOrdinal(wall.from, wall.to) < 0
-                ? wall.from + wall.to : wall.to + wall.from;
+            Assert.That(wall.From, Is.Not.EqualTo(wall.To));
+            string key = string.CompareOrdinal(wall.From, wall.To) < 0
+                ? wall.From + wall.To : wall.To + wall.From;
             Assert.That(pairs.Add(key), Is.True, "Duplicate edge");
-            Vector2 a = positions[wall.from];
-            Vector2 b = positions[wall.to];
+            Vector2 a = positions[wall.From];
+            Vector2 b = positions[wall.To];
             foreach (KeyValuePair<string, Vector2> tower in positions)
             {
-                if (tower.Key != wall.from && tower.Key != wall.to)
+                if (tower.Key != wall.From && tower.Key != wall.To)
                 {
                     float t = Mathf.Clamp01(Vector2.Dot(tower.Value - a, b - a) / (b - a).sqrMagnitude);
                     Assert.That(Vector2.Distance(tower.Value, a + t * (b - a)), Is.GreaterThan(0.449f));
@@ -158,14 +158,14 @@ public class LevelGeneratorTests
 
         for (int i = 0; i < level.Walls.Count; i++)
         {
-            LevelDefinition.Wall first = level.Walls[i];
+            Wall first = level.Walls[i];
             for (int j = i + 1; j < level.Walls.Count; j++)
             {
-                LevelDefinition.Wall second = level.Walls[j];
-                Vector2 a = positions[first.from];
-                Vector2 b = positions[first.to];
-                Vector2 c = positions[second.from];
-                Vector2 d = positions[second.to];
+                Wall second = level.Walls[j];
+                Vector2 a = positions[first.From];
+                Vector2 b = positions[first.To];
+                Vector2 c = positions[second.From];
+                Vector2 d = positions[second.To];
                 float determinant = Cross(b - a, d - c);
                 if (Mathf.Abs(determinant) > 0.0001f)
                 {
@@ -184,14 +184,14 @@ public class LevelGeneratorTests
 
         foreach (LevelDefinition.Tower tower in level.Towers)
         {
-            Assert.That(level.Walls.Any(wall => wall.from == tower.id || wall.to == tower.id), Is.True);
+            Assert.That(level.Walls.Any(wall => wall.From == tower.id || wall.To == tower.id), Is.True);
             foreach (LevelDefinition.Tower other in level.Towers.Where(other => other.id != tower.id))
             {
                 Assert.That(Vector2.Distance(tower.position, other.position), Is.GreaterThan(0.899f));
             }
         }
 
-        LevelRun run = new(level.StartingTower, level.Walls.Select(wall => new Wall(wall.from, wall.to)));
+        LevelRun run = new(level.StartingTower, level.Walls);
         HashSet<int> traversed = new();
         HashSet<string> visited = new() { level.StartingTower, };
         foreach (Move move in level.Route)

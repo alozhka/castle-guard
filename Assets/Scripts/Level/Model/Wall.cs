@@ -1,14 +1,21 @@
+using System;
+using UnityEngine;
+
 namespace CastleGuard.Level.Model;
 
-public readonly struct Wall
+[Serializable]
+public struct Wall
 {
-    public string From { get; }
-    public string To { get; }
+    [SerializeField] private string from;
+    [SerializeField] private string to;
+
+    public string From => from;
+    public string To => to;
 
     public Wall(string from, string to)
     {
-        From = from;
-        To = to;
+        this.from = from;
+        this.to = to;
     }
 
     public bool Connects(string firstTower, string secondTower)

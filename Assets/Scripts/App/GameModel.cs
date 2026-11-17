@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using CastleGuard.Level;
 using CastleGuard.Level.Generation;
 using CastleGuard.Level.Model;
@@ -65,8 +64,10 @@ public sealed class GameModel : IDisposable
             _currentIndex = index;
         }
 
-        return new LevelAttempt(CurrentLevel.StartingTower,
-            CurrentLevel.Walls.Select(wall => new Wall(wall.from, wall.to)), CurrentLevel.BaseReward);
+        return new LevelAttempt(
+            CurrentLevel.StartingTower,
+            CurrentLevel.Walls,
+            CurrentLevel.BaseReward);
     }
 
     private LevelDefinition CreateGeneratedLevel(int index)
