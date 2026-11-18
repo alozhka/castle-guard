@@ -73,6 +73,7 @@ public sealed class LevelAttempt
         _traversedWalls.Remove(move.WallIndex);
         CurrentTower = move.From;
         UsedUndo = true;
+        _hintLocked = false;
         return true;
     }
 

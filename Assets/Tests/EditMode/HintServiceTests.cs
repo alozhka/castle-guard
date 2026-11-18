@@ -38,7 +38,7 @@ public class HintServiceTests
     }
 
     [Test]
-    public void RepeatPurchase_RequiresSuccessfulMove_NotInvalidTapOrUndo()
+    public void RepeatPurchase_RequiresSuccessfulMoveOrUndo()
     {
         MemoryPlayerProgressStore store = new() { Balance = 20, };
         CoinWallet wallet = new(store);
@@ -51,15 +51,18 @@ public class HintServiceTests
         Assert.That(attempt.TryMove("D"), Is.False);
         Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Unavailable));
         Assert.That(attempt.TryUndo(), Is.True);
-        Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Unavailable));
+        Assert.That(attempt.UsedHint, Is.True);
+        Assert.That(service.CanPurchase, Is.True);
+        Assert.That(wallet.Balance, Is.EqualTo(15));
+        Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Forward));
         Assert.That(attempt.TryUndo(), Is.False);
         Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Unavailable));
-        Assert.That(wallet.Balance, Is.EqualTo(15));
+        Assert.That(wallet.Balance, Is.EqualTo(10));
         Assert.That(attempt.TryMove("B"), Is.True);
         Assert.That(service.CanPurchase, Is.True);
         Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Forward));
-        Assert.That(wallet.Balance, Is.EqualTo(10));
-        Assert.That(store.Saves, Is.EqualTo(2));
+        Assert.That(wallet.Balance, Is.EqualTo(5));
+        Assert.That(store.Saves, Is.EqualTo(3));
     }
 
     [Test]
@@ -96,7 +99,7 @@ public class HintServiceTests
 
     [TestCase(false)]
     [TestCase(true)]
-    public void DeadEnd_PurchaseSuggestsUndoWithoutMovingPlayer(bool hasFreeNeighbor)
+    public void DeadEnd_PurchaseSuggestsUndoAndAllowsAnotherHintAfterUndo(bool hasFreeNeighbor)
     {
         MemoryPlayerProgressStore store = new() { Balance = 15, };
         CoinWallet wallet = new(store);
@@ -116,9 +119,12 @@ public class HintServiceTests
         Assert.That(attempt.UsedHint, Is.True);
         Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Unavailable));
         Assert.That(attempt.TryUndo(), Is.True);
-        Assert.That(service.Purchase().Status, Is.EqualTo(HintStatus.Unavailable));
-        Assert.That(wallet.Balance, Is.EqualTo(10));
-        Assert.That(store.Saves, Is.EqualTo(1));
+        Assert.That(service.CanPurchase, Is.True);
+        HintResult nextHint = service.Purchase();
+        Assert.That(nextHint.Status, Is.EqualTo(HintStatus.Forward));
+        Assert.That(nextHint.Step.Value.From, Is.EqualTo("A"));
+        Assert.That(wallet.Balance, Is.EqualTo(5));
+        Assert.That(store.Saves, Is.EqualTo(2));
     }
 
     [Test]
