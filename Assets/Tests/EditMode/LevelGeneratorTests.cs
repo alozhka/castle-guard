@@ -12,11 +12,11 @@ namespace CastleGuard.Tests.EditMode;
 
 public class LevelGeneratorTests
 {
-    [TestCase(1, 5, 6)]
-    [TestCase(6, 6, 8)]
-    [TestCase(11, 7, 10)]
-    [TestCase(16, 8, 12)]
-    [TestCase(21, 9, 14)]
+    [TestCase(1, 6, 8)]
+    [TestCase(6, 7, 10)]
+    [TestCase(11, 8, 12)]
+    [TestCase(16, 9, 14)]
+    [TestCase(21, 10, 16)]
     public void Generate_ManyNames_ProducesPlayablePlanarLevels(int generatedLevelNumber, int towers, int walls)
     {
         LevelGenerator generator = new();
@@ -102,14 +102,14 @@ public class LevelGeneratorTests
             {
                 int number = stage * 5 + offset + 1;
                 GeneratedLevel level = generator.Generate($"Уровень {number}", number);
-                Assert.That(level.Towers.Count, Is.EqualTo(5 + stage), level.Name);
-                Assert.That(level.Walls.Count, Is.EqualTo(6 + stage * 2), level.Name);
+                Assert.That(level.Towers.Count, Is.EqualTo(6 + stage), level.Name);
+                Assert.That(level.Walls.Count, Is.EqualTo(8 + stage * 2), level.Name);
             }
         }
 
         GeneratedLevel last = generator.Generate("Last", int.MaxValue);
-        Assert.That(last.Towers.Count, Is.EqualTo(9));
-        Assert.That(last.Walls.Count, Is.EqualTo(14));
+        Assert.That(last.Towers.Count, Is.EqualTo(10));
+        Assert.That(last.Walls.Count, Is.EqualTo(16));
     }
 
     [TestCase(0)]
@@ -124,7 +124,7 @@ public class LevelGeneratorTests
     {
         GeneratedLevel level = new LevelGenerator().Generate("hello");
         Assert.That(level.Seed, Is.EqualTo(0x4f9f2cabu));
-        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.5.0"));
+        Assert.That(GeneratedLevel.Version, Is.EqualTo("0.6.0"));
     }
 
     [TestCase(null)]
@@ -147,7 +147,7 @@ public class LevelGeneratorTests
     private static void Validate(GeneratedLevel level)
     {
         Assert.That(level.Towers.Count, Is.InRange(2, 10), level.Name);
-        Assert.That(level.Walls.Count, Is.InRange(level.Towers.Count - 1, 14), level.Name);
+        Assert.That(level.Walls.Count, Is.InRange(level.Towers.Count - 1, 16), level.Name);
         Dictionary<string, Vector2> positions = level.Towers.ToDictionary(tower => tower.Id, tower => tower.Position);
         HashSet<string> pairs = new();
         foreach (Wall wall in level.Walls)

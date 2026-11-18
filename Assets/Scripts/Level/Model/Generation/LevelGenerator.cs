@@ -15,7 +15,7 @@ public sealed class LevelGenerator
     private const int PerimeterLength = 16;
     private readonly int _attemptLimit;
     
-    public const string Version = "0.5.0";
+    public const string Version = "0.6.0";
 
     public LevelGenerator(int attemptLimit = MaximumAttempts)
     {
@@ -32,8 +32,8 @@ public sealed class LevelGenerator
         EnsureValid(name, generatedLevelNumber);
 
         int stage = Math.Min((generatedLevelNumber - 1) / LevelsPerStage, MaximumStage);
-        int towerCount = 5 + stage;
-        int wallCount = 6 + stage * 2;
+        int towerCount = 6 + stage;
+        int wallCount = 8 + stage * 2;
         uint seed = Hash(name);
         Random random = new(unchecked((int)seed));
         for (int attempt = 0; attempt < _attemptLimit; attempt++)
